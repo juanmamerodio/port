@@ -5,69 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modelado - Sistema de Cocina | RestoSys</title>
     
-    <!-- Optimización de carga -->
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
     <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍🍳</text></svg>">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: { 500: '#3b82f6', 600: '#2563eb' }
-                    }
-                }
-            }
+            theme: { extend: { colors: { brand: { 500: '#3b82f6', 600: '#2563eb' } } } }
         }
     </script>
     
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .mermaid { 
-            display: flex; 
-            justify-content: center; 
-            margin: 1.5rem 0; 
-            transition: opacity 0.4s ease-in; 
-        }
+        .mermaid { display: flex; justify-content: center; margin: 1.5rem 0; transition: opacity 0.4s ease-in; }
         .mermaid svg { max-width: 100%; height: auto; }
-        
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
-
-        .diagram-error {
-            color: #ef4444;
-            background: #450a0a;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            border: 1px solid #7f1d1d;
-            text-align: center;
-            font-size: 0.875rem;
-        }
+        .diagram-error { color: #ef4444; background: #450a0a; padding: 1rem; border-radius: 0.5rem; border: 1px solid #7f1d1d; text-align: center; font-size: 0.875rem; }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-300 antialiased flex flex-col md:flex-row min-h-screen">
 
-    <!-- Sidebar -->
     <aside class="w-full md:w-64 bg-slate-950 border-r border-slate-800 p-6 flex flex-col sticky top-0 h-auto md:h-screen z-20 shrink-0 overflow-y-auto">
         <div class="mb-8">
             <h1 class="text-xl font-bold text-white flex items-center gap-2">
                 <svg class="w-6 h-6 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
                 RestoSys Docs
             </h1>
-            <p class="text-xs text-slate-500 mt-2">Módulo de Cocina v1.1 - Secure</p>
+            <p class="text-xs text-slate-500 mt-2">Módulo de Cocina v1.1</p>
         </div>
-        
-        <nav class="flex-1 space-y-1 text-sm font-medium" aria-label="Navegación principal">
+        <nav class="flex-1 space-y-1 text-sm font-medium">
             <a href="#dfd" class="nav-link block px-3 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors">1. Diagramas de Flujo (DFD)</a>
             <a href="#der" class="nav-link block px-3 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors">2. Entidad Relación (DER)</a>
             <a href="#dlr" class="nav-link block px-3 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors">3. Lógico Relacional (DLR)</a>
@@ -75,85 +46,36 @@
             <a href="#casos-uso" class="nav-link block px-3 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors">5. Casos de Uso</a>
             <a href="#clases" class="nav-link block px-3 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors">6. Diagrama de Clases</a>
         </nav>
-
-        <div class="mt-auto pt-6 border-t border-slate-800 text-xs text-slate-500">
-            Arquitectura Full Stack &copy; 2026
-        </div>
     </aside>
 
-    <!-- Main Content -->
     <main class="flex-1 p-6 md:p-10 lg:p-14 overflow-y-auto w-full">
         <div class="max-w-5xl mx-auto space-y-16">
-            
             <header class="border-b border-slate-800 pb-8">
                 <h2 class="text-3xl font-bold text-white mb-4">Documentación Arquitectónica: La Cocina</h2>
-                <p class="text-slate-400 leading-relaxed">
-                    Este documento interactivo consolida el modelado completo del módulo de cocina. El sistema gestiona el ciclo de vida de los pedidos, validando cruces de restricciones y proveyendo un motor de consultas temporales.
-                </p>
+                <p class="text-slate-400 leading-relaxed">Modelado técnico del sistema de gestión de cocina.</p>
             </header>
 
-            <!-- Sección 1: DFD -->
+            <!-- DFD -->
             <section id="dfd" class="scroll-mt-10">
-                <h3 class="text-2xl font-semibold text-white mb-2 flex items-center gap-2">
-                    <span class="bg-brand-600 text-white text-xs px-2 py-1 rounded">01</span>
-                    Diagramas de Flujo de Datos (DFD)
+                <h3 class="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
+                    <span class="bg-brand-600 text-white text-xs px-2 py-1 rounded">01</span> DFD
                 </h3>
-                <p class="text-slate-400 text-sm mb-6">Modelado funcional en 3 niveles de abstracción.</p>
-
                 <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 mb-8 shadow-lg">
-                    <h4 class="text-lg font-medium text-slate-200 mb-4 border-b border-slate-700 pb-2">Nivel 0: Diagrama de Contexto</h4>
                     <div class="mermaid opacity-0">
                         flowchart LR
-                            Mozo[Mozo/Caja] == "Ingresa Comanda" ==> SistCocina(("Sistema<br>Cocina"))
+                            Mozo[Mozo/Caja] == "Ingresa Comanda" ==> SistCocina(("Sistema Cocina"))
                             SistCocina == "Informa Estado" ==> Mozo
-                            Gerencia[Gerencia] == "Filtros Fecha/Estado" ==> SistCocina
-                            SistCocina == "Reportes Estadísticos" ==> Gerencia
-                            SistCocina -. "Consulta Menú/Stock" .-> DB[(Base de Datos)]
-                            DB -. "Disponibilidad" .-> SistCocina
-                    </div>
-                </div>
-
-                <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 mb-8 shadow-lg">
-                    <h4 class="text-lg font-medium text-slate-200 mb-4 border-b border-slate-700 pb-2">Nivel 1: Procesos Principales</h4>
-                    <div class="mermaid opacity-0">
-                        flowchart TD
-                            M[Mozo] -->|Nuevo Pedido| P1(("1.0<br>Recibir<br>Pedido"))
-                            P1 -->|Datos del Plato| P2(("2.0<br>Verificar<br>Viabilidad"))
-                            P2 <-->|Lee| D1[(D1: Menú)]
-                            P2 <-->|Lee/Descuenta| D2[(D2: Inventario)]
-                            P2 -->|Aprobado| P3(("3.0<br>Preparar<br>Plato"))
-                            P2 -->|Rechazado| P4(("4.0<br>Cancelar<br>Pedido"))
-                            P3 -->|Finalizado| P5(("5.0<br>Entregar"))
-                            P5 -->|Aviso| M
-                            P4 -->|Aviso| M
-                            G[Gerencia] -->|"Filtros"| P6(("6.0<br>Generar<br>Reportes"))
-                            D3[(D3: Histórico)] <-->|Lee/Graba| P1
-                            D3 <-->|Lee/Graba| P3
-                            D3 <-->|Lee/Graba| P4
-                            D3 <-->|Lee| P6
-                    </div>
-                </div>
-
-                <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 shadow-lg">
-                    <h4 class="text-lg font-medium text-slate-200 mb-4 border-b border-slate-700 pb-2">Nivel 2: Explosión Proceso 2.0</h4>
-                    <div class="mermaid opacity-0">
-                        flowchart TD
-                            In[Llega Detalle Plato] --> 21(("2.1<br>Validar en<br>Menú Diario"))
-                            21 -- "No está" --> OutC[Salida: CANCELADO]
-                            21 -- "Está" --> 22(("2.2<br>Calcular<br>Ingredientes"))
-                            22 --> 23(("2.3<br>Verificar Stock"))
-                            23 -- "Falta" --> OutC
-                            23 -- "OK" --> 24(("2.4<br>Reservar<br>Ingredientes"))
-                            24 --> OutP[Salida: EN PROCESO]
+                            Gerencia[Gerencia] == "Filtros" ==> SistCocina
+                            SistCocina == "Reportes" ==> Gerencia
+                            SistCocina -. "Consulta" .-> DB[(Base de Datos)]
                     </div>
                 </div>
             </section>
 
-            <!-- Sección 2: DER -->
+            <!-- DER -->
             <section id="der" class="scroll-mt-10">
-                <h3 class="text-2xl font-semibold text-white mb-2 flex items-center gap-2">
-                    <span class="bg-brand-600 text-white text-xs px-2 py-1 rounded">02</span>
-                    Diagrama Entidad Relación (DER)
+                <h3 class="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
+                    <span class="bg-brand-600 text-white text-xs px-2 py-1 rounded">02</span> DER
                 </h3>
                 <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 shadow-lg">
                     <div class="mermaid opacity-0">
@@ -163,124 +85,68 @@
                             MENU_DIA ||--|{ PLATO : ofrece
                             PLATO ||--|{ RECETA : requiere
                             MATERIA_PRIMA ||--|{ RECETA : compone
-                            PEDIDO {
-                                int id_pedido
-                                datetime fecha_hora
-                                string estado
-                            }
-                            PLATO {
-                                int id_plato
-                                string nombre
-                            }
-                            MATERIA_PRIMA {
-                                int id_mp
-                                string nombre
-                                float cantidad_stock
-                            }
                     </div>
                 </div>
             </section>
 
-            <!-- Sección 3: DLR -->
+            <!-- DLR -->
             <section id="dlr" class="scroll-mt-10">
-                <h3 class="text-2xl font-semibold text-white mb-2 flex items-center gap-2">
-                    <span class="bg-brand-600 text-white text-xs px-2 py-1 rounded">03</span>
-                    Diagrama Lógico Relacional (DLR)
+                <h3 class="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
+                    <span class="bg-brand-600 text-white text-xs px-2 py-1 rounded">03</span> DLR
                 </h3>
                 <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 shadow-lg overflow-x-auto">
                     <div class="mermaid opacity-0">
                         classDiagram
-                            class Pedidos {
-                                +PK id_pedido : INT
-                                +fecha : DATE
-                                +hora : TIME
-                                +estado : VARCHAR
-                            }
-                            class Detalle_Pedidos {
-                                +PK id_detalle : INT
-                                +FK id_pedido : INT
-                                +FK id_plato : INT
-                                +cantidad : INT
-                            }
-                            class Platos {
-                                +PK id_plato : INT
-                                +nombre : VARCHAR
-                                +precio : DECIMAL
-                            }
-                            class Menu_Diario {
-                                +PK FK id_plato : INT
-                                +PK fecha : DATE
-                            }
-                            class Materia_Prima {
-                                +PK id_mp : INT
-                                +nombre : VARCHAR
-                                +stock_actual : DECIMAL
-                            }
-                            class Recetas {
-                                +PK FK id_plato : INT
-                                +PK FK id_mp : INT
-                                +cantidad_necesaria : DECIMAL
-                            }
-                            Pedidos "1" -- "*" Detalle_Pedidos : id_pedido
-                            Platos "1" -- "*" Detalle_Pedidos : id_plato
-                            Platos "1" -- "*" Menu_Diario : id_plato
-                            Platos "1" -- "*" Recetas : id_plato
-                            Materia_Prima "1" -- "*" Recetas : id_mp
+                            class Pedidos { +int id_pedido, +date fecha, +string estado }
+                            class Detalle_Pedidos { +int id_detalle, +int id_pedido, +int id_plato }
+                            class Platos { +int id_plato, +string nombre }
+                            Pedidos "1" -- "*" Detalle_Pedidos
+                            Platos "1" -- "*" Detalle_Pedidos
                     </div>
                 </div>
             </section>
 
-            <!-- Sección 4: DTE -->
+            <!-- DTE -->
             <section id="dte" class="scroll-mt-10">
-                <h3 class="text-2xl font-semibold text-white mb-2 flex items-center gap-2">
-                    <span class="bg-brand-600 text-white text-xs px-2 py-1 rounded">04</span>
-                    Diagrama de Transición de Estados (DTE)
+                <h3 class="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
+                    <span class="bg-brand-600 text-white text-xs px-2 py-1 rounded">04</span> DTE
                 </h3>
                 <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 shadow-lg">
                     <div class="mermaid opacity-0">
                         stateDiagram-v2
-                            [*] --> PEDIDO : Ingreso Comanda
+                            [*] --> PEDIDO
                             state validacion <<choice>>
-                            PEDIDO --> validacion : Evaluación
-                            validacion --> EN_PROCESO : [Stock OK]
-                            validacion --> CANCELADO : [Stock LOW]
-                            EN_PROCESO --> TERMINADO : Preparado
-                            EN_PROCESO --> CANCELADO : Error Cocina
-                            TERMINADO --> [*] : Entrega
-                            CANCELADO --> [*] : Notificación
+                            PEDIDO --> validacion
+                            validacion --> EN_PROCESO : OK
+                            validacion --> CANCELADO : Error
+                            EN_PROCESO --> TERMINADO
+                            TERMINADO --> [*]
                     </div>
                 </div>
             </section>
 
-            <!-- Sección 5: Casos de Uso -->
+            <!-- Casos de Uso -->
             <section id="casos-uso" class="scroll-mt-10">
-                <h3 class="text-2xl font-semibold text-white mb-2 flex items-center gap-2">
-                    <span class="bg-brand-600 text-white text-xs px-2 py-1 rounded">05</span>
-                    Casos de Uso
+                <h3 class="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
+                    <span class="bg-brand-600 text-white text-xs px-2 py-1 rounded">05</span> Casos de Uso
                 </h3>
                 <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 shadow-lg">
                     <div class="mermaid opacity-0">
                         flowchart LR
-                            subgraph Sistema_Cocina[Sistema de Cocina]
+                            subgraph Sistema
                                 CU1(("Ingresar Pedido"))
-                                CU2(("Validar Menú y Stock"))
-                                CU3(("Actualizar Estado"))
-                                CU4(("Consultar Reportes"))
+                                CU2(("Validar Stock"))
                             end
-                            A_Mozo[\Mozo/] --> CU1
-                            A_Cocinero[\Cocinero/] --> CU3
-                            A_Gerente[\Gerente/] --> CU4
-                            CU1 -. "<< includes >>" .-> CU2
-                            CU3 -. "<< includes >>" .-> CU2
+                            Mozo[\Mozo/] --> CU1
+                            CU1 -.-> CU2
                     </div>
                 </div>
             </section>
 
-            <!-- Sección 6: Clases -->
+            <!-- Clases (EL PUNTO CRÍTICO CORREGIDO) -->
             <section id="clases" class="scroll-mt-10 mb-20">
-                <h3 class="text-2xl font-semibold text-white mb-2 flex items-center gap-2">
-                    <span class="bg-brand-600 text-white text-xs px-2 py-1 rounded">06</span>
-                    Diagrama de Clases
+                <h3 class="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
+                    <span class="bg-brand-600 text-white text-xs px-2 py-1 rounded">06</span> Diagrama de Clases
                 </h3>
                 <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 shadow-lg">
                     <div class="mermaid opacity-0">
@@ -288,42 +154,37 @@
                             class Pedido {
                                 -int id
                                 -Date fecha
-                                -EstadoPedido estado
-                                +cambiarEstado(EstadoPedido nuevo)
-                                +obtenerTotalPlatos() int
+                                +cambiarEstado()
                             }
                             class EstadoPedido {
-                                <<enum>>
+                                <<enumeration>>
                                 PEDIDO
                                 EN_PROCESO
                                 CANCELADO
                                 TERMINADO
                             }
                             class MenuService {
-                                +verificarPlatoEnMenuDelDia(int idPlato, Date fecha) boolean
+                                +verificarPlato() boolean
                             }
                             class InventarioService {
-                                +verificarDisponibilidad(Receta receta) boolean
-                                +descontarStock(Receta receta) void
+                                +verificarDisponibilidad() boolean
                             }
                             class ControladorCocina {
-                                +recibirPedido(Pedido pedido)
-                                +procesarTransicion(Pedido pedido)
+                                +recibirPedido()
                             }
                             class GestorReportes {
-                                +obtenerPedidosPorDia(Date dia) List
-                                +obtenerPedidosPorMes(int mes) List
-                                +obtenerPedidosPorAnio(int año) List
+                                +obtenerPedidos() List
                             }
-                            Pedido --> EstadoPedido
+                            
+                            %% Relaciones definidas al final para evitar errores de parseo
                             ControladorCocina --> Pedido
                             ControladorCocina --> MenuService
                             ControladorCocina --> InventarioService
+                            Pedido --> EstadoPedido
                             GestorReportes --> Pedido
                     </div>
                 </div>
             </section>
-
         </div>
     </main>
 
@@ -354,11 +215,10 @@
             console.error('MermaidJS Error:', error);
             document.querySelectorAll('.mermaid').forEach(el => {
                 el.classList.remove('opacity-0');
-                el.innerHTML = `<div class="diagram-error">Error de renderizado: No se pudo cargar el motor de diagramas.</div>`;
+                el.innerHTML = `<div class="diagram-error">Error de renderizado en el diagrama.</div>`;
             });
         }
 
-        // Intersection Observer para el menú
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -368,7 +228,6 @@
                         link.classList.add('text-slate-400');
                         if (link.getAttribute('href') === `#${id}`) {
                             link.classList.add('bg-slate-800', 'text-white');
-                            link.classList.remove('text-slate-400');
                         }
                     });
                 }
