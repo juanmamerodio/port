@@ -14,6 +14,9 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Solución Error 6: Favicon en línea para evitar 404 del servidor -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍🍳</text></svg>">
+
     <!-- 
       NOTA DE ARQUITECTURA (Tailwind CSS): 
       Se utiliza el CDN para mantener la naturaleza "Single-File" y portátil de esta documentación. 
@@ -110,7 +113,7 @@
                     <h4 class="text-lg font-medium text-slate-200 mb-4 border-b border-slate-700 pb-2">Nivel 0: Diagrama de Contexto</h4>
                     <div class="mermaid opacity-0">
                         flowchart LR
-                            Mozo[Mozo/Caja] == "Ingresa Comanda" ==> SistCocina((Sistema\nCocina))
+                            Mozo[Mozo/Caja] == "Ingresa Comanda" ==> SistCocina(("Sistema<br>Cocina"))
                             SistCocina == "Informa Estado" ==> Mozo
                             Gerencia[Gerencia] == "Filtros Fecha/Estado" ==> SistCocina
                             SistCocina == "Reportes Estadísticos" ==> Gerencia
@@ -120,24 +123,25 @@
                 </div>
 
                 <!-- Nivel 1 -->
+                <!-- Nivel 1 -->
                 <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 mb-8 shadow-lg">
                     <h4 class="text-lg font-medium text-slate-200 mb-4 border-b border-slate-700 pb-2">Nivel 1: Procesos Principales</h4>
                     <div class="mermaid opacity-0">
                         flowchart TD
-                            M[Mozo] -->|Nuevo Pedido| P1((1.0\nRecibir\nPedido))
-                            P1 -->|Datos del Plato| P2((2.0\nVerificar\nViabilidad))
+                            M[Mozo] -->|Nuevo Pedido| P1(("1.0<br>Recibir<br>Pedido"))
+                            P1 -->|Datos del Plato| P2(("2.0<br>Verificar<br>Viabilidad"))
                             
                             P2 <-->|Lee| D1[(D1: Menú del Día)]
                             P2 <-->|Lee/Descuenta| D2[(D2: Inventario)]
                             
-                            P2 -->|Aprobado| P3((3.0\nPreparar\nPlato))
-                            P2 -->|Rechazado| P4((4.0\nCancelar\nPedido))
+                            P2 -->|Aprobado| P3(("3.0<br>Preparar<br>Plato"))
+                            P2 -->|Rechazado| P4(("4.0<br>Cancelar<br>Pedido"))
                             
-                            P3 -->|Finalizado| P5((5.0\nEntregar))
+                            P3 -->|Finalizado| P5(("5.0<br>Entregar"))
                             P5 -->|Aviso| M
                             P4 -->|Aviso| M
                             
-                            G[Gerencia] -->|Filtros (D/M/A)| P6((6.0\nGenerar\nReportes))
+                            G[Gerencia] -->|"Filtros (D/M/A)"| P6(("6.0<br>Generar<br>Reportes"))
                             D3[(D3: Histórico Pedidos)] <-->|Lee/Graba| P1
                             D3 <-->|Lee/Graba| P3
                             D3 <-->|Lee/Graba| P4
@@ -146,17 +150,18 @@
                 </div>
 
                 <!-- Nivel 2 -->
+                <!-- Nivel 2 -->
                 <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 shadow-lg">
                     <h4 class="text-lg font-medium text-slate-200 mb-4 border-b border-slate-700 pb-2">Nivel 2: Explosión Proceso 2.0 (Verificar Viabilidad)</h4>
                     <div class="mermaid opacity-0">
                         flowchart TD
-                            In[Llega Detalle Plato] --> 21((2.1\nValidar en\nMenú Diario))
+                            In[Llega Detalle Plato] --> 21(("2.1<br>Validar en<br>Menú Diario"))
                             21 -- "No está en menú" --> OutC[Salida: Estado CANCELADO]
-                            21 -- "Está en menú" --> 22((2.2\nCalcular\nIngredientes))
-                            22 --> 23((2.3\nVerificar Stock\nMateria Prima))
+                            21 -- "Está en menú" --> 22(("2.2<br>Calcular<br>Ingredientes"))
+                            22 --> 23(("2.3<br>Verificar Stock<br>Materia Prima"))
                             
                             23 -- "Falta Stock" --> OutC
-                            23 -- "Stock OK" --> 24((2.4\nReservar\nIngredientes))
+                            23 -- "Stock OK" --> 24(("2.4<br>Reservar<br>Ingredientes"))
                             24 --> OutP[Salida: Estado EN PROCESO]
                     </div>
                 </div>
@@ -292,10 +297,10 @@
                     <div class="mermaid opacity-0">
                         flowchart LR
                             subgraph Sistema_Cocina[Sistema de Cocina]
-                                CU1((Ingresar Pedido))
-                                CU2((Validar Menú y Stock))
-                                CU3((Actualizar Estado Pedido))
-                                CU4((Consultar Reportes\nDía/Mes/Año))
+                                CU1(("Ingresar Pedido"))
+                                CU2(("Validar Menú y Stock"))
+                                CU3(("Actualizar Estado Pedido"))
+                                CU4(("Consultar Reportes<br>Día/Mes/Año"))
                             end
                             
                             A_Mozo[\Mozo/] --> CU1
