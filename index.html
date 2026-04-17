@@ -4,7 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modelado - Sistema de Cocina</title>
-    <!-- Tailwind CSS para el diseño profesional -->
+    
+    <!-- Optimización de carga: Pre-conexión a los CDNs utilizados -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- 
+      NOTA DE ARQUITECTURA (Tailwind CSS): 
+      Se utiliza el CDN para mantener la naturaleza "Single-File" y portátil de esta documentación. 
+      En el desarrollo de la aplicación real, se deberá migrar a PostCSS/Tailwind CLI.
+    -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -21,11 +35,10 @@
             }
         }
     </script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .mermaid { display: flex; justify-content: center; margin-top: 1.5rem; margin-bottom: 1.5rem; }
+        .mermaid { display: flex; justify-content: center; margin-top: 1.5rem; margin-bottom: 1.5rem; transition: opacity 0.3s ease; }
         /* Pequeño ajuste para que los diagramas se vean bien en móviles */
         .mermaid svg { max-width: 100%; height: auto; }
         
@@ -34,6 +47,17 @@
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* Estado de error visual si fallan los diagramas */
+        .diagram-error {
+            color: #ef4444;
+            background: #450a0a;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #7f1d1d;
+            text-align: center;
+            font-size: 0.875rem;
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-300 antialiased flex flex-col md:flex-row min-h-screen">
@@ -45,7 +69,7 @@
                 <svg class="w-6 h-6 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
                 RestoSys Docs
             </h1>
-            <p class="text-xs text-slate-500 mt-2">Módulo de Cocina v1.0</p>
+            <p class="text-xs text-slate-500 mt-2">Módulo de Cocina v1.1 - Secure</p>
         </div>
         
         <nav class="flex-1 space-y-1 text-sm font-medium">
@@ -84,7 +108,7 @@
                 <!-- Nivel 0 -->
                 <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 mb-8 shadow-lg">
                     <h4 class="text-lg font-medium text-slate-200 mb-4 border-b border-slate-700 pb-2">Nivel 0: Diagrama de Contexto</h4>
-                    <div class="mermaid">
+                    <div class="mermaid opacity-0">
                         flowchart LR
                             Mozo[Mozo/Caja] == "Ingresa Comanda" ==> SistCocina((Sistema\nCocina))
                             SistCocina == "Informa Estado" ==> Mozo
@@ -98,7 +122,7 @@
                 <!-- Nivel 1 -->
                 <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 mb-8 shadow-lg">
                     <h4 class="text-lg font-medium text-slate-200 mb-4 border-b border-slate-700 pb-2">Nivel 1: Procesos Principales</h4>
-                    <div class="mermaid">
+                    <div class="mermaid opacity-0">
                         flowchart TD
                             M[Mozo] -->|Nuevo Pedido| P1((1.0\nRecibir\nPedido))
                             P1 -->|Datos del Plato| P2((2.0\nVerificar\nViabilidad))
@@ -124,7 +148,7 @@
                 <!-- Nivel 2 -->
                 <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 shadow-lg">
                     <h4 class="text-lg font-medium text-slate-200 mb-4 border-b border-slate-700 pb-2">Nivel 2: Explosión Proceso 2.0 (Verificar Viabilidad)</h4>
-                    <div class="mermaid">
+                    <div class="mermaid opacity-0">
                         flowchart TD
                             In[Llega Detalle Plato] --> 21((2.1\nValidar en\nMenú Diario))
                             21 -- "No está en menú" --> OutC[Salida: Estado CANCELADO]
@@ -146,7 +170,7 @@
                 </h3>
                 <p class="text-slate-400 text-sm mb-6">Modelo conceptual de los datos manejados por el sistema.</p>
                 <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 shadow-lg">
-                    <div class="mermaid">
+                    <div class="mermaid opacity-0">
                         erDiagram
                             PEDIDO ||--|{ DETALLE_PEDIDO : contiene
                             PLATO ||--|{ DETALLE_PEDIDO : incluye
@@ -180,7 +204,7 @@
                 </h3>
                 <p class="text-slate-400 text-sm mb-6">Traducción del DER a esquema de tablas, definiendo PKs (Claves Primarias) y FKs (Claves Foráneas).</p>
                 <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 shadow-lg overflow-x-auto">
-                    <div class="mermaid">
+                    <div class="mermaid opacity-0">
                         classDiagram
                             class Pedidos {
                                 &lt;&lt;Table&gt;&gt;
@@ -237,7 +261,7 @@
                 </h3>
                 <p class="text-slate-400 text-sm mb-6">Máquina de estados estricta que gobierna el ciclo de vida de un PEDIDO.</p>
                 <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 shadow-lg">
-                    <div class="mermaid">
+                    <div class="mermaid opacity-0">
                         stateDiagram-v2
                             [*] --> PEDIDO : Se ingresa comanda al sistema
                             
@@ -265,7 +289,7 @@
                 </h3>
                 <p class="text-slate-400 text-sm mb-6">Interacciones de los actores (Mozo, Cocinero, Gerente) con los límites del sistema.</p>
                 <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 shadow-lg">
-                    <div class="mermaid">
+                    <div class="mermaid opacity-0">
                         flowchart LR
                             subgraph Sistema_Cocina[Sistema de Cocina]
                                 CU1((Ingresar Pedido))
@@ -292,7 +316,7 @@
                 </h3>
                 <p class="text-slate-400 text-sm mb-6">Modelado orientado a objetos mostrando atributos, métodos y la lógica de negocio (especialmente el motor de reportes y las validaciones).</p>
                 <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 shadow-lg">
-                    <div class="mermaid">
+                    <div class="mermaid opacity-0">
                         classDiagram
                             class Pedido {
                                 -int id
@@ -342,28 +366,44 @@
         </div>
     </main>
 
-    <!-- Script de Inicialización de Mermaid -->
-    <!-- Usamos la versión ESM para navegadores modernos -->
+    <!-- Script de Inicialización de Mermaid encapsulado y seguro -->
     <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        
-        // Configuramos Mermaid para que haga match con nuestro hermoso tema oscuro (Tailwind slate-900)
-        mermaid.initialize({ 
-            startOnLoad: true,
-            theme: 'base',
-            themeVariables: {
-                primaryColor: '#1e293b', // slate-800
-                primaryTextColor: '#f8fafc', // slate-50
-                primaryBorderColor: '#334155', // slate-700
-                lineColor: '#64748b', // slate-500
-                secondaryColor: '#2563eb', // brand blue
-                tertiaryColor: '#0f172a' // slate-950
-            },
-            flowchart: { curve: 'basis' },
-            fontFamily: 'Inter, sans-serif'
-        });
+        // Importación de Mermaid manejando posibles fallos de red
+        try {
+            const mermaidModule = await import('https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs');
+            const mermaid = mermaidModule.default;
+            
+            mermaid.initialize({ 
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    primaryColor: '#1e293b', 
+                    primaryTextColor: '#f8fafc', 
+                    primaryBorderColor: '#334155', 
+                    lineColor: '#64748b', 
+                    secondaryColor: '#2563eb', 
+                    tertiaryColor: '#0f172a' 
+                },
+                flowchart: { curve: 'basis' },
+                fontFamily: 'Inter, sans-serif'
+            });
 
-        // Opcional: Pequeño script para resaltar el menú lateral al scrollear
+            // Mostramos los diagramas suavemente (fade in) una vez cargados para evitar "parpadeos" (FOUC)
+            await mermaid.run();
+            document.querySelectorAll('.mermaid').forEach(el => el.classList.remove('opacity-0'));
+
+        } catch (error) {
+            console.error('Error al cargar o inicializar MermaidJS:', error);
+            document.querySelectorAll('.mermaid').forEach(el => {
+                el.classList.remove('opacity-0');
+                el.innerHTML = `<div class="diagram-error">
+                    <strong>Error de renderizado:</strong> No se pudo cargar el motor de diagramas (Mermaid).<br>
+                    Verifique su conexión a internet o la configuración del firewall/CORS de su entorno.
+                </div>`;
+            });
+        }
+
+        // Script para el resaltado interactivo del menú lateral
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
