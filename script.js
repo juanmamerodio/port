@@ -542,7 +542,3 @@ const MockEngine = {
 
 // --- 6. APP INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => App.init());
-
-</script>
-</body>
-</html>
