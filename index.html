@@ -4,105 +4,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#ffffff" id="meta-theme-color">
-    <title>Notebing | Premium Social Experience</title>
+    <title>Notebing | Final Integrated Prototype</title>
     
-    <!-- Tailwind CSS for layout & utility -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Custom Styles for Animations, Theme Variables, and Complex Components -->
-    <link rel="stylesheet" href="style.css">
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="bg-[var(--bg-base)] text-[var(--text-primary)] selection:bg-indigo-100">
+<body class="bg-[var(--bg-base)] text-[var(--text-primary)]">
 
     <div class="app-container flex flex-col md:flex-row min-h-screen max-w-[1280px] mx-auto">
         
-        <!-- SIDEBAR LEFT (Desktop Only) -->
+        <!-- LEFT SIDEBAR (Desktop) -->
         <aside class="sidebar-left hidden md:flex flex-col w-[260px] p-5 sticky top-0 h-screen">
             <div class="logo-desktop text-3xl font-extrabold text-[var(--accent-primary)] mb-8 px-4">
                 Note<span>bing</span>.
             </div>
             <nav class="nav-desktop flex flex-col gap-2">
-                <button class="nav-item-desktop active flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full transition-all" data-view="home">
+                <button class="nav-item-desktop active flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full" data-view="home">
                     <span class="text-2xl">🏠</span> <span>Inicio</span>
                 </button>
-                <button class="nav-item-desktop flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full transition-all" data-view="niches">
+                <button class="nav-item-desktop flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full" data-view="niches">
                     <span class="text-2xl">🎯</span> <span>Nichos</span>
                 </button>
-                <button class="nav-item-desktop flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full transition-all" data-view="brain">
+                <button class="nav-item-desktop flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full" data-view="brain">
                     <span class="text-2xl">🧠</span> <span>Cerebro</span>
                 </button>
-                <button class="nav-item-desktop flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full transition-all" data-view="profile">
+                <button class="nav-item-desktop flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full" data-view="profile">
                     <span class="text-2xl">👤</span> <span>Perfil</span>
                 </button>
             </nav>
-            <button class="btn-compose-desktop mt-8 bg-[var(--accent-primary)] text-white py-4 rounded-full text-lg font-bold shadow-lg hover:bg-[var(--accent-hover)] transition-all" onclick="UI.focusComposer()">
+            <button class="btn-compose-desktop mt-8 bg-[var(--accent-primary)] text-white py-4 rounded-full text-lg font-bold shadow-lg" onclick="UI.focusComposer()">
                 Postear
             </button>
         </aside>
 
-        <!-- MAIN CONTENT AREA (The SPA Container) -->
+        <!-- MAIN CONTENT -->
         <main class="main-content flex-1 min-w-0 max-w-[600px] mx-auto border-x border-[var(--border-color)] bg-[var(--bg-surface)] min-h-screen pb-20 md:pb-0">
-            
-            <!-- Dynamic Top Bar -->
             <header class="top-bar sticky top-0 z-50 flex justify-between items-center px-4 py-3 border-b border-[var(--border-color)] bg-[var(--bg-glass)] backdrop-blur-md">
                 <div class="flex items-center gap-3">
                     <div class="avatar w-8 h-8 flex items-center justify-center text-xs font-bold text-white bg-[var(--accent-primary)] rounded-full" id="top-bar-avatar">T</div>
                     <h1 id="view-title" class="text-lg font-bold">Inicio</h1>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button id="theme-toggle" class="icon-btn text-xl">🌗</button>
-                </div>
+                <button id="theme-toggle" class="icon-btn text-xl">🌗</button>
             </header>
 
-            <!-- View Container (This is where the magic happens) -->
             <div id="view-container">
-                <!-- JS will inject: Home, Niches, Brain, or Profile templates here -->
+                <!-- Dynamic Content Injected Here -->
             </div>
-
         </main>
 
-        <!-- SIDEBAR RIGHT (Desktop Only) -->
+        <!-- RIGHT SIDEBAR (Desktop) -->
         <aside class="sidebar-right hidden lg:flex flex-col w-[320px] p-5 sticky top-0 h-screen gap-5">
             <div class="widget bg-[var(--bg-surface)] border border-[var(--border-color)] p-4 rounded-2xl shadow-sm">
-                <h3 class="font-bold text-lg mb-4">Nichos Tendencia</h3>
-                <div id="trending-niches" class="flex flex-col gap-4">
-                    <!-- JS injected -->
-                </div>
+                <h3 class="font-bold text-lg mb-4">Nichos Sugeridos</h3>
+                <div id="trending-niches" class="flex flex-col gap-4"></div>
             </div>
             <div class="widget bg-[var(--bg-surface)] border border-[var(--border-color)] p-4 rounded-2xl shadow-sm">
-                <h3 class="font-bold text-lg mb-4">Sugeridos</h3>
-                <div id="suggested-users" class="flex flex-col gap-4">
-                    <!-- JS injected -->
-                </div>
+                <h3 class="font-bold text-lg mb-4">Seguir Usuarios</h3>
+                <div id="suggested-users" class="flex flex-col gap-4"></div>
             </div>
         </aside>
 
-        <!-- MOBILE BOTTOM NAVIGATION -->
+        <!-- MOBILE NAV -->
         <nav class="bottom-nav md:hidden fixed bottom-0 left-0 w-full bg-[var(--bg-glass)] backdrop-blur-lg border-t border-[var(--border-color)] flex justify-around py-3 px-2 z-50">
-            <button class="nav-item active flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="home">
-                <span class="text-2xl">🏠</span><span>Inicio</span>
-            </button>
-            <button class="nav-item flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="niches">
-                <span class="text-2xl">🎯</span><span>Nichos</span>
-            </button>
-            <button class="nav-item flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="brain">
-                <span class="text-2xl">🧠</span><span>Cerebro</span>
-            </button>
-            <button class="nav-item flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="profile">
-                <span class="text-2xl">👤</span><span>Perfil</span>
-            </button>
+            <button class="nav-item active flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="home"><span class="text-2xl">🏠</span><span>Inicio</span></button>
+            <button class="nav-item flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="niches"><span class="text-2xl">🎯</span><span>Nichos</span></button>
+            <button class="nav-item flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="brain"><span class="text-2xl">🧠</span><span>Cerebro</span></button>
+            <button class="nav-item flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="profile"><span class="text-2xl">👤</span><span>Perfil</span></button>
         </nav>
     </div>
 
-    <!-- Toast -->
     <div id="toast" class="toast">Mensaje</div>
 
-    <!-- APPLICATION ENGINE -->
     <script>
+        /* ==========================================================================
+           1. FINAL USER DATA (IMMUTABLE)
+           ========================================================================== */
         const users = [
             { id: "u_1", handle: "alex_chen_dev", name: "Alex Chen", avatar: "https://i.pravatar.cc/150?img=1", bio: "Software Architect building scalable distributed systems.", niches: ["tech", "productivity"], followersCount: 842, followingCount: 210 },
             { id: "u_2", handle: "elena_design", name: "Elena Smith", avatar: "https://i.pravatar.cc/150?img=2", bio: "Visual storyteller and UI enthusiast.", niches: ["design", "productivity"], followersCount: 1205, followingCount: 430 },
@@ -126,6 +103,9 @@
             { id: "u_20", handle: "tech_athlete", name: "Tech Athlete", avatar: "https://i.pravatar.cc/150?img=20", bio: "Code and cardio. Every single day.", niches: ["tech", "fitness"], followersCount: 310, followingCount: 140 }
         ];
 
+        /* ==========================================================================
+           2. STATE MANAGEMENT (Normalized)
+           ========================================================================== */
         const AppState = {
             currentView: 'home',
             isPublishing: false,
@@ -141,7 +121,9 @@
             niches: {},  // { id: { niche_obj } }
             notes: {}    // { id: { note_obj } }
         };
-       const MockEngine = {
+
+        // --- 3. MOCK ENGINE (The System Integrator) ---
+        const MockEngine = {
             generate() {
                 // 1. Initialize Niches
                 const nicheData = [
@@ -190,12 +172,16 @@
                     
                     // If it belongs to current user
                     if (authorId === 'u_me') AppState.currentUser.ownNotes.add(id);
-                    AppState.currentUser.followedUsers.add('u_1').add('u_4');
+                }
+                
+                // Setup initial relationships for the demo
+                AppState.currentUser.followedUsers.add('u_1').add('u_4');
                 AppState.currentUser.followedNiches.add('tech').add('ai');
+            }
+        };
 
-                    
-        // --- 3. API SIMULATION ---
-         const ApiService = {
+        // --- 4. API SIMULATION ---
+        const ApiService = {
             async publish(content, visibility, nicheId) {
                 return new Promise(res => setTimeout(() => {
                     const id = `n_${Date.now()}`;
@@ -218,13 +204,13 @@
             }
         };
 
-        // --- 4. VIEW TEMPLATES ---
+        // --- 5. VIEW TEMPLATES ---
         const Templates = {
             home: () => `
                 <div class="composer p-4 border-b border-[var(--border-color)] flex gap-3">
                     <div class="avatar w-10 h-10 flex items-center justify-center text-sm font-bold text-white bg-[var(--accent-primary)] rounded-full">T</div>
                     <div class="flex-1">
-                        <textarea id="note-input" class="w-full text-lg bg-transparent border-none resize-none outline-none" placeholder="¿Qué estás aprendiendo hoy?"></textarea>
+                        <textarea id="note-input" class="w-full text-lg bg-transparent border-none resize-none outline-none" placeholder="¿Qué estás aprendiendo?"></textarea>
                         <div class="flex justify-between items-center mt-2 pt-2 border-t border-[var(--border-color)]">
                             <div class="flex gap-2">
                                 <select id="note-visibility" class="text-xs font-semibold bg-[var(--bg-base)] p-1 rounded-full border border-[var(--border-color)]">
@@ -248,7 +234,7 @@
                     <h2 class="text-2xl font-extrabold mb-6">Explorar Nichos</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         ${Object.values(AppState.niches).map(n => `
-                            <div class="widget p-5 rounded-2xl border border-[var(--border-color)] flex items-center justify-between hover:bg-[var(--bg-surface-hover)] transition-all cursor-pointer" onclick="UI.followNiche('${n.id}')">
+                            <div class="widget p-5 rounded-2xl border border-[var(--border-color)] flex items-center justify-between hover:bg-[var(--bg-surface-hover)] transition-all cursor-pointer" onclick="UI.handleFollowNiche('${n.id}')">
                                 <div class="flex items-center gap-4">
                                     <span class="text-3xl">${n.icon}</span>
                                     <div>
@@ -256,7 +242,7 @@
                                         <div class="text-xs text-[var(--text-secondary)]">${n.followersCount.toLocaleString()} notas</div>
                                     </div>
                                 </div>
-                                <button class="btn-follow ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''}" data-type="niche" data-id="${n.id}">
+                                <button class="btn-follow text-xs font-bold ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''}" data-type="niche" data-id="${n.id}">
                                     ${AppState.currentUser.followedNiches.has(n.id) ? 'Siguiendo' : 'Seguir'}
                                 </button>
                             </div>
@@ -266,7 +252,7 @@
             `,
             brain: () => `
                 <div class="p-6">
-                    <h2 class="text-2xl font-extrabold mb-2">Tu Segundo Cerebro</h2>
+                    <h2 class="text-2xl font-extrabold mb-2">Segundo Cerebro</h2>
                     <p class="text-[var(--text-secondary)] text-sm mb-6">Tus notas privadas y guardadas.</p>
                     <div id="feed-container" class="flex flex-col"></div>
                 </div>
@@ -285,14 +271,14 @@
                                 <div class="text-center"><div class="font-bold">${u.followersCount}</div><div class="text-xs text-[var(--text-secondary)]">Seguidores</div></div>
                             </div>
                         </div>
-                        <h3 class="font-bold text-lg mb-4">Tus Notas</h3>
+                        <h3 class="font-bold text-lg mb-4">Mis Notas</h3>
                         <div id="feed-container" class="flex flex-col"></div>
                     </div>
                 `;
             }
         };
 
-        // --- 5. UI CONTROLLER ---
+        // --- 5. UI CONTROLLER (The Brain) ---
         const UI = {
             init() {
                 MockEngine.generate();
@@ -430,6 +416,7 @@
                     this.feedContainer.appendChild(card);
                 });
             },
+
             renderSidebars() {
                 const nicheList = document.getElementById('trending-niches');
                 if (nicheList) {
@@ -597,3 +584,6 @@
         };
 
         document.addEventListener('DOMContentLoaded', () => UI.init());
+    </script>
+</body>
+</html>
