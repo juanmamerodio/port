@@ -2,146 +2,572 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Notebing - Inicio</title>
-    <link rel="stylesheet" href="style.css">   
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notebing - Final Prototype</title>
+    <style>
+        /* ==========================================================================
+           1. DESIGN SYSTEM (Material 4 / iOS 27 Inspired)
+           ========================================================================== */
+        :root {
+            --bg-base: #f2f2f7; /* iOS background */
+            --bg-surface: #ffffff;
+            --bg-surface-glass: rgba(255, 255, 255, 0.85);
+            --text-primary: #1c1c1e;
+            --text-secondary: #8e8e93;
+            --accent-primary: #5e5ce6; /* Indigo AI */
+            --accent-hover: #4b49b8;
+            --border-color: #e5e5ea;
+            --danger-color: #ff3b30;
+            --success-color: #34c759;
+            
+            --radius-sm: 12px;
+            --radius-md: 20px;
+            --radius-lg: 28px;
+            --radius-full: 9999px;
+            
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+            
+            --transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-base: #000000;
+                --bg-surface: #1c1c1e;
+                --bg-surface-glass: rgba(28, 28, 30, 0.85);
+                --text-primary: #f2f2f7;
+                --text-secondary: #8e8e93;
+                --border-color: #38383a;
+            }
+        }
+
+        /* ==========================================================================
+           2. RESET & BASE
+           ========================================================================== */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+        button { cursor: pointer; font-family: inherit; border: none; background: none; }
+        input, textarea, select { font-family: inherit; }
+        a { color: var(--accent-primary); text-decoration: none; }
+
+        /* ==========================================================================
+           3. LAYOUT (Grid)
+           ========================================================================== */
+        .app-container {
+            display: grid;
+            grid-template-columns: 260px minmax(0, 600px) 320px;
+            gap: 24px;
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* ==========================================================================
+           4. NAVIGATION (Sidebar)
+           ========================================================================== */
+        .sidebar { position: sticky; top: 20px; height: calc(100vh - 40px); display: flex; flex-direction: column; }
+        .logo { font-size: 24px; font-weight: 800; color: var(--accent-primary); margin-bottom: 32px; padding: 0 16px; letter-spacing: -0.5px; }
+        
+        .nav-menu { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+        .nav-item {
+            display: flex; align-items: center; gap: 16px; padding: 14px 20px;
+            border-radius: var(--radius-full); font-size: 18px; font-weight: 600;
+            color: var(--text-primary); transition: var(--transition);
+        }
+        .nav-item:hover { background-color: rgba(142, 142, 147, 0.1); }
+        .nav-item.active { background-color: var(--text-primary); color: var(--bg-base); }
+        
+        .btn-compose {
+            margin-top: 24px; background-color: var(--accent-primary); color: white;
+            padding: 16px; border-radius: var(--radius-full); font-size: 18px; font-weight: 700;
+            box-shadow: var(--shadow-md); transition: var(--transition);
+        }
+        .btn-compose:hover { background-color: var(--accent-hover); transform: scale(1.02); }
+
+        /* ==========================================================================
+           5. MAIN FEED AREA
+           ========================================================================== */
+        .main-content { display: flex; flex-direction: column; gap: 20px; padding-bottom: 100px; }
+        
+        /* Top Bar (Glassmorphism) */
+        .top-bar {
+            position: sticky; top: 0; z-index: 10;
+            background: var(--bg-surface-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            padding: 16px 20px; border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .top-bar h2 { font-size: 20px; font-weight: 700; }
+
+        /* Composer (Create Note) */
+        .composer {
+            background: var(--bg-surface); padding: 20px; border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);
+        }
+        .composer textarea {
+            width: 100%; border: none; background: transparent; font-size: 18px;
+            color: var(--text-primary); resize: none; outline: none; min-height: 80px;
+        }
+        .composer textarea::placeholder { color: var(--text-secondary); }
+        .composer-actions {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color);
+        }
+        .controls-group { display: flex; gap: 12px; }
+        .select-niche, .select-visibility {
+            padding: 8px 12px; border-radius: var(--radius-full);
+            border: 1px solid var(--border-color); background: var(--bg-base);
+            color: var(--text-primary); font-size: 14px; font-weight: 500; outline: none;
+        }
+        .btn-submit {
+            background: var(--accent-primary); color: white; padding: 8px 20px;
+            border-radius: var(--radius-full); font-weight: 600; transition: var(--transition);
+        }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Note Card */
+        .note-card {
+            background: var(--bg-surface); padding: 20px; border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);
+            transition: var(--transition); animation: slideIn 0.4s ease forwards;
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .note-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--border-color); object-fit: cover; }
+        .user-info { display: flex; flex-direction: column; }
+        .user-name { font-weight: 700; font-size: 16px; }
+        .user-handle { color: var(--text-secondary); font-size: 14px; }
+        
+        .ai-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 12px; font-weight: 600; color: var(--accent-primary);
+            background: rgba(94, 92, 230, 0.1); padding: 4px 10px; border-radius: var(--radius-full);
+            margin-bottom: 12px;
+        }
+
+        .note-content { font-size: 16px; line-height: 1.6; margin-bottom: 16px; white-space: pre-wrap; }
+        
+        .note-footer { display: flex; align-items: center; gap: 24px; border-top: 1px solid var(--border-color); padding-top: 16px; }
+        .action-btn {
+            display: flex; align-items: center; gap: 6px; color: var(--text-secondary);
+            font-size: 14px; font-weight: 500; transition: var(--transition);
+        }
+        .action-btn:hover { color: var(--accent-primary); }
+        .action-btn.liked { color: var(--danger-color); }
+        .action-btn.saved { color: var(--success-color); }
+        
+        .niche-tag {
+            margin-left: auto; font-size: 13px; font-weight: 600; color: var(--text-secondary);
+            background: var(--bg-base); padding: 4px 12px; border-radius: var(--radius-full);
+        }
+
+        /* ==========================================================================
+           6. RIGHT SIDEBAR (Recommendations)
+           ========================================================================== */
+        .right-sidebar { position: sticky; top: 20px; display: flex; flex-direction: column; gap: 20px; }
+        .widget {
+            background: var(--bg-surface); border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color); padding: 20px; box-shadow: var(--shadow-sm);
+        }
+        .widget h3 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+        .widget-list { list-style: none; display: flex; flex-direction: column; gap: 16px; }
+        .widget-item { display: flex; justify-content: space-between; align-items: center; }
+        .widget-item-info strong { display: block; font-size: 15px; }
+        .widget-item-info span { font-size: 13px; color: var(--text-secondary); }
+        .btn-follow {
+            background: var(--text-primary); color: var(--bg-base); padding: 6px 16px;
+            border-radius: var(--radius-full); font-size: 13px; font-weight: 700;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: var(--text-primary); color: var(--bg-base); padding: 12px 24px;
+            border-radius: var(--radius-full); font-weight: 600; font-size: 15px;
+            box-shadow: var(--shadow-md); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000; opacity: 0;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        /* Responsive */
+        @media (max-width: 1024px) { .app-container { grid-template-columns: 220px minmax(0, 1fr); } .right-sidebar { display: none; } }
+        @media (max-width: 768px) {
+            .app-container { grid-template-columns: 1fr; padding: 10px; gap: 10px; }
+            .sidebar {
+                position: fixed; bottom: 0; left: 0; width: 100%; height: auto; z-index: 100;
+                background: var(--bg-surface-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+                border-top: 1px solid var(--border-color); padding: 10px 20px; padding-bottom: env(safe-area-inset-bottom, 20px);
+            }
+            .logo, .btn-compose { display: none; }
+            .nav-menu { flex-direction: row; justify-content: space-around; }
+            .nav-item { flex-direction: column; gap: 4px; font-size: 10px; padding: 8px; }
+            .nav-item span { display: none; } /* Hide text, show only emoji on mobile */
+            .nav-item::before { content: attr(data-icon); font-size: 24px; }
+            .top-bar { top: 10px; }
+        }
+    </style>
 </head>
 <body>
 
-    <!-- BARRA DE NAVEGACIÓN SUPERIOR / APP BAR -->
-    <header>
-        <h1>Notebing</h1>
-        <form action="/search" method="GET">
-            <label for="search-bar">Buscar en Notebing:</label>
-            <input type="search" id="search-bar" name="q" placeholder="Buscar nichos, notas o usuarios...">
-            <button type="submit">Buscar</button>
-        </form>
-        <div class="user-profile-menu">
-            <img src="avatar.jpg" alt="Tu perfil" width="40" height="40">
-            <span>@usuario_dev</span>
-        </div>
-    </header>
-
-    <!-- LAYOUT PRINCIPAL A 3 COLUMNAS -->
-    <div style="display: flex;">
-
-        <!-- MENÚ DE NAVEGACIÓN LATERAL (Drawer / BottomNav en Mobile) -->
-        <nav>
-            <ul>
-                <li><a href="/home">🏠 Inicio (Feed Híbrido)</a></li>
-                <li><a href="/niches">🎯 Mis Nichos</a></li>
-                <li><a href="/brain">🧠 Segundo Cerebro (Privado)</a></li>
-                <li><a href="/profile">👤 Perfil</a></li>
-                <li><a href="/settings">⚙️ Configuración</a></li>
+    <div class="app-container">
+        <!-- LEFT SIDEBAR (Navigation) -->
+        <aside class="sidebar">
+            <div class="logo">Notebing.</div>
+            <ul class="nav-menu">
+                <li><a href="#" class="nav-item active" data-view="home" data-icon="🏠"><span>🏠 Inicio</span></a></li>
+                <li><a href="#" class="nav-item" data-view="niches" data-icon="🎯"><span>🎯 Nichos</span></a></li>
+                <li><a href="#" class="nav-item" data-view="brain" data-icon="🧠"><span>🧠 Segundo Cerebro</span></a></li>
+                <li><a href="#" class="nav-item" data-view="profile" data-icon="👤"><span>👤 Perfil</span></a></li>
             </ul>
-            <button>Escribir Nota</button>
-        </nav>
-
-        <!-- COLUMNA CENTRAL: CONTENIDO PRINCIPAL (LazyColumn en Compose) -->
-        <main>
-            <!-- COMPONENTE: CREAR NOTA -->
-            <section aria-labelledby="create-note-title">
-                <h2 id="create-note-title">¿Qué estás pensando o aprendiendo?</h2>
-                <form action="/api/notes" method="POST">
-                    <textarea name="content" rows="3" placeholder="Escribe una nota rápida..." required></textarea>
-                    
-                    <fieldset>
-                        <legend>Visibilidad:</legend>
-                        <label><input type="radio" name="visibility" value="PUBLIC" checked> Público</label>
-                        <label><input type="radio" name="visibility" value="NICHE"> Solo Nicho</label>
-                        <label><input type="radio" name="visibility" value="PRIVATE"> Privado (Segundo Cerebro)</label>
-                    </fieldset>
-
-                    <label for="niche-select">Nicho (Opcional):</label>
-                    <select name="nicheId" id="niche-select">
-                        <option value="">Que la IA lo clasifique...</option>
-                        <option value="1">Startups</option>
-                        <option value="2">Desarrollo Android</option>
-                        <option value="3">Filosofía</option>
-                    </select>
-
-                    <button type="submit">Publicar Nota</button>
-                </form>
-            </section>
-
-            <hr>
-
-            <!-- COMPONENTE: FEED DE NOTAS -->
-            <section aria-labelledby="feed-title">
-                <h2 id="feed-title">Tu Feed</h2>
-                
-                <!-- NOTA 1: De alguien que sigues -->
-                <article>
-                    <header>
-                        <img src="user1.jpg" alt="Avatar de usuario" width="30" height="30">
-                        <strong>@johndoe</strong> 
-                        <span>hace 2 horas</span>
-                    </header>
-                    <p>Acabo de entender cómo funciona Clean Architecture en Android. Separar la capa de Dominio hace que testear los Use Cases sea un juego de niños. 🚀</p>
-                    <footer>
-                        <a href="/niche/android">🏷️ Desarrollo Android</a>
-                        <button>❤️ 12 Likes</button>
-                        <button>🔄 Re-Note</button>
-                        <button>🧠 Guardar en Segundo Cerebro</button>
-                    </footer>
-                </article>
-
-                <hr>
-
-                <!-- NOTA 2: Recomendada por IA basada en nicho -->
-                <article>
-                    <header>
-                        <span>✨ Recomendado por Gemini (Nicho: Startups)</span><br>
-                        <img src="user2.jpg" alt="Avatar de usuario" width="30" height="30">
-                        <strong>@startup_founder</strong>
-                        <span>hace 5 horas</span>
-                    </header>
-                    <p>El mayor error al crear un MVP es añadir demasiadas funcionalidades. Construye el flujo principal, lánzalo y que los usuarios te digan qué falta.</p>
-                    <footer>
-                        <a href="/niche/startups">🏷️ Startups</a>
-                        <button>❤️ 45 Likes</button>
-                        <button>🔄 Re-Note</button>
-                        <button>🧠 Guardar en Segundo Cerebro</button>
-                    </footer>
-                </article>
-
-            </section>
-        </main>
-
-        <!-- COLUMNA DERECHA: RECOMENDACIONES (Sidebar) -->
-        <aside>
-            <section aria-labelledby="suggested-niches-title">
-                <h2 id="suggested-niches-title">Nichos para ti</h2>
-                <ul>
-                    <li>
-                        <strong>Inteligencia Artificial</strong>
-                        <p>15k Notas activas</p>
-                        <button>Seguir Nicho</button>
-                    </li>
-                    <li>
-                        <strong>Productividad</strong>
-                        <p>8k Notas activas</p>
-                        <button>Seguir Nicho</button>
-                    </li>
-                </ul>
-            </section>
-
-            <section aria-labelledby="suggested-users-title">
-                <h2 id="suggested-users-title">A quién seguir</h2>
-                <ul>
-                    <li>
-                        <strong>@android_expert</strong>
-                        <button>Seguir</button>
-                    </li>
-                    <li>
-                        <strong>@tech_philosophy</strong>
-                        <button>Seguir</button>
-                    </li>
-                </ul>
-            </section>
+            <button class="btn-compose" onclick="document.querySelector('textarea').focus()">Escribir Nota</button>
         </aside>
 
+        <!-- MAIN CONTENT (Dynamic View) -->
+        <main class="main-content">
+            <div class="top-bar">
+                <h2 id="view-title">Inicio</h2>
+                <div class="avatar" style="width: 32px; height: 32px; background: #5e5ce6; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold;">T</div>
+            </div>
+
+            <!-- Composer (Only visible in Home/Niches) -->
+            <div class="composer" id="composer-section">
+                <textarea id="note-input" placeholder="¿Qué estás pensando o aprendiendo?"></textarea>
+                <div class="composer-actions">
+                    <div class="controls-group">
+                        <select class="select-visibility" id="note-visibility">
+                            <option value="PUBLIC">🌍 Público</option>
+                            <option value="NICHE">🎯 Solo Nicho</option>
+                            <option value="PRIVATE">🔒 Privado (Cerebro)</option>
+                        </select>
+                        <select class="select-niche" id="note-niche">
+                            <option value="">✨ IA Auto-clasificar</option>
+                            <option value="startups">🚀 Startups</option>
+                            <option value="tech">💻 Tecnología</option>
+                            <option value="philosophy">🤔 Filosofía</option>
+                        </select>
+                    </div>
+                    <button class="btn-submit" id="btn-publish">Publicar</button>
+                </div>
+            </div>
+
+            <!-- Feed Container -->
+            <div id="feed-container">
+                <!-- Notes will be injected here by JS -->
+            </div>
+        </main>
+
+        <!-- RIGHT SIDEBAR (Recommendations) -->
+        <aside class="right-sidebar">
+            <div class="widget">
+                <h3>Nichos Recomendados</h3>
+                <ul class="widget-list">
+                    <li class="widget-item">
+                        <div class="widget-item-info"><strong>🤖 Inteligencia Artificial</strong><span>12.4k notas</span></div>
+                        <button class="btn-follow">Seguir</button>
+                    </li>
+                    <li class="widget-item">
+                        <div class="widget-item-info"><strong>📱 Desarrollo Móvil</strong><span>8.2k notas</span></div>
+                        <button class="btn-follow">Seguir</button>
+                    </li>
+                </ul>
+            </div>
+            <div class="widget">
+                <h3>A quién seguir</h3>
+                <ul class="widget-list">
+                    <li class="widget-item">
+                        <div class="widget-item-info"><strong>@elon_tech</strong><span>Construyendo cohetes</span></div>
+                        <button class="btn-follow">Seguir</button>
+                    </li>
+                </ul>
+            </div>
+        </aside>
     </div>
-    <script src="script.js"></script>
+
+    <div class="toast" id="toast">Notificación</div>
+
+    <script>
+        /* ==========================================================================
+           ARCHITECTURE: MVI (Model-View-Intent) Pattern Simulation
+           ========================================================================== */
+
+        // 1. MODEL (State & Mock Data)
+        const AppState = {
+            currentView: 'home', // 'home', 'niches', 'brain'
+            currentUser: { id: 'u1', handle: 'tu_usuario', name: 'Tú', avatar: 'T' },
+            isPublishing: false,
+            notes:[
+                {
+                    id: 'n1',
+                    author: { name: 'Sarah Dev', handle: 'sarah_codes', avatar: 'S' },
+                    content: 'Acabo de implementar Clean Architecture en mi app de Flutter. Separar la capa de dominio hace que los tests unitarios sean un paseo por el parque. 🚀',
+                    visibility: 'PUBLIC',
+                    niche: { id: 'tech', name: 'Tecnología', icon: '💻' },
+                    likes: 42,
+                    isLiked: false,
+                    isSaved: false,
+                    isAiClassified: false,
+                    timestamp: 'Hace 2h'
+                },
+                {
+                    id: 'n2',
+                    author: { name: 'Startup Founder', handle: 'build_in_public', avatar: 'F' },
+                    content: 'El mayor error al crear un MVP es enamorarse de la solución y no del problema. Lanza rápido, equivócate rápido, itera más rápido.',
+                    visibility: 'PUBLIC',
+                    niche: { id: 'startups', name: 'Startups', icon: '🚀' },
+                    likes: 128,
+                    isLiked: true,
+                    isSaved: false,
+                    isAiClassified: true, // Simula que Gemini lo clasificó
+                    timestamp: 'Hace 5h'
+                }
+            ]
+        };
+
+        // 2. SERVICES (Simulated API & AI)
+        const ApiService = {
+            async publishNote(content, visibility, nicheId) {
+                return new Promise(resolve => setTimeout(() => {
+                    resolve({
+                        id: 'n_' + Date.now(),
+                        author: AppState.currentUser,
+                        content, visibility, likes: 0, isLiked: false, isSaved: visibility === 'PRIVATE',
+                        timestamp: 'Justo ahora'
+                    });
+                }, 600));
+            },
+
+            async classifyWithGemini(content) {
+                return new Promise(resolve => setTimeout(() => {
+                    const text = content.toLowerCase();
+                    if (text.includes('código') || text.includes('app') || text.includes('bug')) 
+                        resolve({ id: 'tech', name: 'Tecnología', icon: '💻' });
+                    else if (text.includes('negocio') || text.includes('mvp') || text.includes('dinero')) 
+                        resolve({ id: 'startups', name: 'Startups', icon: '🚀' });
+                    else 
+                        resolve({ id: 'philosophy', name: 'Filosofía', icon: '🤔' });
+                }, 1200)); // Gemini API delay simulation
+            }
+        };
+
+        // 3. VIEW CONTROLLER (UI Rendering & Event Handling)
+        const UI = {
+            init() {
+                this.cacheDOM();
+                this.bindEvents();
+                this.render();
+            },
+
+            cacheDOM() {
+                this.feedContainer = document.getElementById('feed-container');
+                this.viewTitle = document.getElementById('view-title');
+                this.composerSection = document.getElementById('composer-section');
+                this.noteInput = document.getElementById('note-input');
+                this.btnPublish = document.getElementById('btn-publish');
+                this.navItems = document.querySelectorAll('.nav-item');
+                this.toast = document.getElementById('toast');
+            },
+
+            bindEvents() {
+                // Navigation
+                this.navItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const view = e.currentTarget.dataset.view;
+                        if (view && view !== 'profile') this.navigate(view);
+                    });
+                });
+
+                // Publish Note
+                this.btnPublish.addEventListener('click', () => this.handlePublish());
+
+                // Feed Interactions (Event Delegation)
+                this.feedContainer.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.action-btn');
+                    if (!btn) return;
+                    
+                    const noteId = btn.dataset.id;
+                    if (btn.dataset.action === 'like') this.toggleLike(noteId);
+                    if (btn.dataset.action === 'save') this.toggleSave(noteId);
+                });
+            },
+
+            navigate(view) {
+                AppState.currentView = view;
+                
+                // Update Nav UI
+                this.navItems.forEach(item => item.classList.remove('active'));
+                document.querySelector(`[data-view="${view}"]`).classList.add('active');
+                
+                // Update Header & Composer visibility
+                const titles = { 'home': 'Inicio', 'niches': 'Tus Nichos', 'brain': 'Segundo Cerebro' };
+                this.viewTitle.textContent = titles[view];
+                this.composerSection.style.display = view === 'brain' ? 'none' : 'block';
+
+                this.render();
+            },
+
+            async handlePublish() {
+                const content = this.noteInput.value.trim();
+                if (!content || AppState.isPublishing) return;
+
+                const visibility = document.getElementById('note-visibility').value;
+                const nicheId = document.getElementById('note-niche').value;
+
+                this.setLoading(true);
+
+                try {
+                    let finalNiche = null;
+                    let isAiClassified = false;
+
+                    // AI Classification Logic
+                    if (!nicheId && visibility !== 'PRIVATE') {
+                        this.showToast("✨ Gemini está analizando tu nota...");
+                        finalNiche = await ApiService.classifyWithGemini(content);
+                        isAiClassified = true;
+                    } else if (nicheId) {
+                        const select = document.getElementById('note-niche');
+                        finalNiche = { id: nicheId, name: select.options[select.selectedIndex].text.split(' ')[1], icon: '🏷️' };
+                    }
+
+                    const newNote = await ApiService.publishNote(content, visibility, nicheId);
+                    newNote.niche = finalNiche;
+                    newNote.isAiClassified = isAiClassified;
+
+                    // Update State
+                    AppState.notes.unshift(newNote);
+                    
+                    // Reset UI
+                    this.noteInput.value = '';
+                    document.getElementById('note-niche').value = '';
+                    this.showToast("✅ Nota publicada");
+                    
+                    // If published as private, maybe navigate to brain
+                    if (visibility === 'PRIVATE' && AppState.currentView !== 'brain') {
+                        this.showToast("🧠 Guardada en tu Segundo Cerebro");
+                    }
+
+                    this.render();
+                } catch (error) {
+                    this.showToast("❌ Error al publicar");
+                } finally {
+                    this.setLoading(false);
+                }
+            },
+
+            toggleLike(noteId) {
+                const note = AppState.notes.find(n => n.id === noteId);
+                if (note) {
+                    note.isLiked = !note.isLiked;
+                    note.likes += note.isLiked ? 1 : -1;
+                    this.render(); // Re-render to update state
+                }
+            },
+
+            toggleSave(noteId) {
+                const note = AppState.notes.find(n => n.id === noteId);
+                if (note) {
+                    note.isSaved = !note.isSaved;
+                    this.showToast(note.isSaved ? "🧠 Guardado en Segundo Cerebro" : "Removido del Cerebro");
+                    this.render();
+                }
+            },
+
+            setLoading(isLoading) {
+                AppState.isPublishing = isLoading;
+                this.btnPublish.disabled = isLoading;
+                this.btnPublish.textContent = isLoading ? 'Publicando...' : 'Publicar';
+                this.noteInput.disabled = isLoading;
+            },
+
+            showToast(message) {
+                this.toast.textContent = message;
+                this.toast.classList.add('show');
+                setTimeout(() => this.toast.classList.remove('show'), 3000);
+            },
+
+            // 4. RENDER ENGINE
+            render() {
+                this.feedContainer.innerHTML = '';
+                
+                // Filter notes based on current view
+                let filteredNotes = AppState.notes;
+                
+                if (AppState.currentView === 'brain') {
+                    filteredNotes = AppState.notes.filter(n => n.visibility === 'PRIVATE' || n.isSaved);
+                } else if (AppState.currentView === 'niches') {
+                    filteredNotes = AppState.notes.filter(n => n.niche && n.visibility !== 'PRIVATE');
+                } else {
+                    // Home: Show public notes
+                    filteredNotes = AppState.notes.filter(n => n.visibility !== 'PRIVATE');
+                }
+
+                if (filteredNotes.length === 0) {
+                    this.feedContainer.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <div style="font-size: 48px; margin-bottom: 16px;">${AppState.currentView === 'brain' ? '🧠' : '📭'}</div>
+                            <h3>Nada por aquí aún</h3>
+                            <p>Las notas aparecerán aquí.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Render each note
+                filteredNotes.forEach(note => {
+                    const aiBadge = note.isAiClassified 
+                        ? `<div class="ai-badge">✨ Clasificado por Gemini</div>` : '';
+                    
+                    const nicheTag = note.niche && note.visibility !== 'PRIVATE'
+                        ? `<span class="niche-tag">${note.niche.icon} ${note.niche.name}</span>` 
+                        : (note.visibility === 'PRIVATE' ? `<span class="niche-tag">🔒 Privado</span>` : '');
+
+                    const html = `
+                        <article class="note-card">
+                            ${aiBadge}
+                            <div class="note-header">
+                                <div class="avatar" style="display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; background: ${note.author.id === 'u1' ? '#5e5ce6' : '#8e8e93'}">
+                                    ${note.author.avatar}
+                                </div>
+                                <div class="user-info">
+                                    <span class="user-name">${note.author.name}</span>
+                                    <span class="user-handle">@${note.author.handle} · ${note.timestamp}</span>
+                                </div>
+                            </div>
+                            <div class="note-content">${this.escapeHTML(note.content)}</div>
+                            <div class="note-footer">
+                                <button class="action-btn ${note.isLiked ? 'liked' : ''}" data-action="like" data-id="${note.id}">
+                                    ${note.isLiked ? '❤️' : '🤍'} ${note.likes}
+                                </button>
+                                <button class="action-btn" data-action="re-note">
+                                    🔄 Re-Note
+                                </button>
+                                <button class="action-btn ${note.isSaved ? 'saved' : ''}" data-action="save" data-id="${note.id}">
+                                    🧠 ${note.isSaved ? 'Guardado' : 'Cerebro'}
+                                </button>
+                                ${nicheTag}
+                            </div>
+                        </article>
+                    `;
+                    this.feedContainer.insertAdjacentHTML('beforeend', html);
+                });
+            },
+
+            escapeHTML(str) {
+                return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag]));
+            }
+        };
+
+        // Boot App
+        document.addEventListener('DOMContentLoaded', () => UI.init());
+    </script>
 </body>
-    scri
 </html>
