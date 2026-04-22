@@ -4,586 +4,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#ffffff" id="meta-theme-color">
-    <title>Notebing | Final Integrated Prototype</title>
+    <title>Notebing | Premium Social Experience</title>
     
+    <!-- 1. Framework de Utilidades (Tailwind) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. Estilos Personalizados (Variables, Animaciones, Temas) -->
     <link rel="stylesheet" href="style.css">
+    
+    <!-- 3. Tipografía de Alta Calidad -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body class="bg-[var(--bg-base)] text-[var(--text-primary)]">
+<body class="bg-[var(--bg-base)] text-[var(--text-primary)] antialiased">
 
+    <!-- CONTENEDOR PRINCIPAL (Layout Grid) -->
     <div class="app-container flex flex-col md:flex-row min-h-screen max-w-[1280px] mx-auto">
         
-        <!-- LEFT SIDEBAR (Desktop) -->
+        <!-- SIDEBAR IZQUIERDO (Navegación Desktop) -->
         <aside class="sidebar-left hidden md:flex flex-col w-[260px] p-5 sticky top-0 h-screen">
             <div class="logo-desktop text-3xl font-extrabold text-[var(--accent-primary)] mb-8 px-4">
                 Note<span>bing</span>.
             </div>
             <nav class="nav-desktop flex flex-col gap-2">
-                <button class="nav-item-desktop active flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full" data-view="home">
+                <button class="nav-item-desktop active flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full transition-all" data-view="home">
                     <span class="text-2xl">🏠</span> <span>Inicio</span>
                 </button>
-                <button class="nav-item-desktop flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full" data-view="niches">
+                <button class="nav-item-desktop flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full transition-all" data-view="niches">
                     <span class="text-2xl">🎯</span> <span>Nichos</span>
                 </button>
-                <button class="nav-item-desktop flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full" data-view="brain">
+                <button class="nav-item-desktop flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full transition-all" data-view="brain">
                     <span class="text-2xl">🧠</span> <span>Cerebro</span>
                 </button>
-                <button class="nav-item-desktop flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full" data-view="profile">
+                <button class="nav-item-desktop flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full transition-all" data-view="profile">
                     <span class="text-2xl">👤</span> <span>Perfil</span>
                 </button>
             </nav>
-            <button class="btn-compose-desktop mt-8 bg-[var(--accent-primary)] text-white py-4 rounded-full text-lg font-bold shadow-lg" onclick="UI.focusComposer()">
+            <button class="btn-compose-desktop mt-8 bg-[var(--accent-primary)] text-white py-4 rounded-full text-lg font-bold shadow-lg hover:bg-[var(--accent-hover)] transition-all" onclick="UI.focusComposer()">
                 Postear
             </button>
         </aside>
 
-        <!-- MAIN CONTENT -->
+        <!-- ÁREA DE CONTENIDO PRINCIPAL (Donde el Router inyecta las vistas) -->
         <main class="main-content flex-1 min-w-0 max-w-[600px] mx-auto border-x border-[var(--border-color)] bg-[var(--bg-surface)] min-h-screen pb-20 md:pb-0">
+            
+            <!-- Barra Superior Dinámica -->
             <header class="top-bar sticky top-0 z-50 flex justify-between items-center px-4 py-3 border-b border-[var(--border-color)] bg-[var(--bg-glass)] backdrop-blur-md">
                 <div class="flex items-center gap-3">
                     <div class="avatar w-8 h-8 flex items-center justify-center text-xs font-bold text-white bg-[var(--accent-primary)] rounded-full" id="top-bar-avatar">T</div>
                     <h1 id="view-title" class="text-lg font-bold">Inicio</h1>
                 </div>
-                <button id="theme-toggle" class="icon-btn text-xl">🌗</button>
+                <div class="top-bar-actions">
+                    <button id="theme-toggle" class="icon-btn text-xl" aria-label="Cambiar tema">🌗</button>
+                </div>
             </header>
 
+            <!-- CONTENEDOR DE VISTAS (Inyección de HTML por JS) -->
             <div id="view-container">
-                <!-- Dynamic Content Injected Here -->
+                <!-- El contenido de Home, Niches, Brain o Profile se cargará aquí -->
             </div>
         </main>
 
-        <!-- RIGHT SIDEBAR (Desktop) -->
+        <!-- SIDEBAR DERECHO (Widgets Desktop) -->
         <aside class="sidebar-right hidden lg:flex flex-col w-[320px] p-5 sticky top-0 h-screen gap-5">
             <div class="widget bg-[var(--bg-surface)] border border-[var(--border-color)] p-4 rounded-2xl shadow-sm">
                 <h3 class="font-bold text-lg mb-4">Nichos Sugeridos</h3>
-                <div id="trending-niches" class="flex flex-col gap-4"></div>
+                <div id="trending-niches" class="flex flex-col gap-4">
+                    <!-- Inyectado por JS -->
+                </div>
             </div>
             <div class="widget bg-[var(--bg-surface)] border border-[var(--border-color)] p-4 rounded-2xl shadow-sm">
                 <h3 class="font-bold text-lg mb-4">Seguir Usuarios</h3>
-                <div id="suggested-users" class="flex flex-col gap-4"></div>
+                <div id="suggested-users" class="flex flex-col gap-4">
+                    <!-- Inyectado por JS -->
+                </div>
             </div>
         </aside>
 
-        <!-- MOBILE NAV -->
+        <!-- NAVEGACIÓN INFERIOR (Mobile Only) -->
         <nav class="bottom-nav md:hidden fixed bottom-0 left-0 w-full bg-[var(--bg-glass)] backdrop-blur-lg border-t border-[var(--border-color)] flex justify-around py-3 px-2 z-50">
-            <button class="nav-item active flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="home"><span class="text-2xl">🏠</span><span>Inicio</span></button>
-            <button class="nav-item flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="niches"><span class="text-2xl">🎯</span><span>Nichos</span></button>
-            <button class="nav-item flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="brain"><span class="text-2xl">🧠</span><span>Cerebro</span></button>
-            <button class="nav-item flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="profile"><span class="text-2xl">👤</span><span>Perfil</span></button>
+            <button class="nav-item active flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="home">
+                <span class="text-2xl">🏠</span><span>Inicio</span>
+            </button>
+            <button class="nav-item flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="niches">
+                <span class="text-2xl">🎯</span><span>Nichos</span>
+            </button>
+            <button class="nav-item flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="brain">
+                <span class="text-2xl">🧠</span><span>Cerebro</span>
+            </button>
+            <button class="nav-item flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="profile">
+                <span class="text-2xl">👤</span><span>Perfil</span>
+            </button>
         </nav>
     </div>
 
+    <!-- SISTEMA DE NOTIFICACIONES (Toast) -->
     <div id="toast" class="toast">Mensaje</div>
 
-    <script>
-        /* ==========================================================================
-           1. FINAL USER DATA (IMMUTABLE)
-           ========================================================================== */
-        const users = [
-            { id: "u_1", handle: "alex_chen_dev", name: "Alex Chen", avatar: "https://i.pravatar.cc/150?img=1", bio: "Software Architect building scalable distributed systems.", niches: ["tech", "productivity"], followersCount: 842, followingCount: 210 },
-            { id: "u_2", handle: "elena_design", name: "Elena Smith", avatar: "https://i.pravatar.cc/150?img=2", bio: "Visual storyteller and UI enthusiast.", niches: ["design", "productivity"], followersCount: 1205, followingCount: 430 },
-            { id: "u_3", handle: "stoic_marcus", name: "Marcus Aurelius", avatar: "https://i.pravatar.cc/150?img=3", bio: "Applying ancient wisdom to modern chaos.", niches: ["philosophy", "productivity"], followersCount: 560, followingCount: 90 },
-            { id: "u_4", handle: "sam_river_ai", name: "Sam River", avatar: "https://i.pravatar.cc/150?img=4", bio: "Exploring the frontiers of Large Language Models.", niches: ["ai", "tech"], followersCount: 3400, followingCount: 510 },
-            { id: "u_5", handle: "jordan_lift", name: "Jordan Lift", avatar: "https://i.pravatar.cc/150?img=5", bio: "Daily gains and disciplined routines.", niches: ["fitness", "productivity"], followersCount: 2100, followingCount: 340 },
-            { id: "u_6", handle: "max_codes", name: "Max Code", avatar: "https://i.pravatar.cc/150?img=6", bio: "JavaScript fanatic and indie hacker.", niches: ["tech", "startups"], followersCount: 450, followingCount: 120 },
-            { id: "u_7", handle: "startup_queen", name: "Startup Queen", avatar: "https://i.pravatar.cc/150?img=7", bio: "Serial entrepreneur building in public.", niches: ["startups", "design"], followersCount: 890, followingCount: 300 },
-            { id: "u_8", handle: "phil_mind", name: "Phil Mind", avatar: "https://i.pravatar.cc/150?img=8", bio: "Seeking truth through logic and reason.", niches: ["philosophy", "tech"], followersCount: 320, followingCount: 150 },
-            { id: "u_9", handle: "fit_tech_guy", name: "Fit Tech Guy", avatar: "https://i.pravatar.cc/150?img=9", bio: "Performance tracking and wearable tech enthusiast.", niches: ["fitness", "tech"], followersCount: 760, followingCount: 280 },
-            { id: "u_10", handle: "prod_hacker", name: "Prod Hacker", avatar: "https://i.pravatar.cc/150?img=10", bio: "Systems to maximize human output.", niches: ["productivity", "ai"], followersCount: 1500, followingCount: 400 },
-            { id: "u_11", handle: "design_lead_pro", name: "Design Lead", avatar: "https://i.pravatar.cc/150?img=11", bio: "Creative direction for global brands.", niches: ["design", "startups"], followersCount: 920, followingCount: 210 },
-            { id: "u_12", handle: "logic_coder", name: "Logic Coder", avatar: "https://i.pravatar.cc/150?img=12", bio: "Where technical implementation meets logic.", niches: ["tech", "philosophy"], followersCount: 410, followingCount: 180 },
-            { id: "u_13", handle: "ai_creative", name: "AI Creative", avatar: "https://i.pravatar.cc/150?img=13", bio: "Generative art and AI-driven design.", niches: ["ai", "design"], followersCount: 1100, followingCount: 350 },
-            { id: "u_14", handle: "fit_founder", name: "Fit Founder", avatar: "https://i.pravatar.cc/150?img=14", bio: "Building empires and building muscle.", niches: ["startups", "fitness"], followersCount: 650, followingCount: 190 },
-            { id: "u_15", handle: "zen_mode_on", name: "Zen Mode", avatar: "https://i.pravatar.cc/150?img=15", bio: "Minimalism and deep work.", niches: ["productivity", "philosophy"], followersCount: 280, followingCount: 110 },
-            { id: "u_16", handle: "solo_dev_mike", name: "Solo Dev Mike", avatar: "https://i.pravatar.cc/150?img=16", bio: "Bootstrapping SaaS products.", niches: ["startups", "tech"], followersCount: 540, followingCount: 220 },
-            { id: "u_17", handle: "bio_hacker_ai", name: "Bio Hacker", avatar: "https://i.pravatar.cc/150?img=17", bio: "Optimizing biology with machine learning.", niches: ["ai", "fitness"], followersCount: 890, followingCount: 410 },
-            { id: "u_18", handle: "design_math", name: "Design Math", avatar: "https://i.pravatar.cc/150?img=18", bio: "Exploring the geometry of beautiful interfaces.", niches: ["design", "philosophy"], followersCount: 430, followingCount: 120 },
-            { id: "u_19", handle: "founder_flow", name: "Founder Flow", avatar: "https://i.pravatar.cc/150?img=19", bio: "Scaling from 0 to 1 without burnout.", niches: ["startups", "productivity"], followersCount: 1400, followingCount: 380 },
-            { id: "u_20", handle: "tech_athlete", name: "Tech Athlete", avatar: "https://i.pravatar.cc/150?img=20", bio: "Code and cardio. Every single day.", niches: ["tech", "fitness"], followersCount: 310, followingCount: 140 }
-        ];
-
-        /* ==========================================================================
-           2. STATE MANAGEMENT (Normalized)
-           ========================================================================== */
-        const AppState = {
-            currentView: 'home',
-            isPublishing: false,
-            currentUser: { 
-                id: 'u_me', handle: 'tu_usuario', name: 'Tú', avatar: 'T',
-                bio: "Frontend Architect & Product Thinker 🚀",
-                followersCount: 342, followingCount: 128,
-                likedNotes: new Set(), savedNotes: new Set(), renotedNotes: new Set(),
-                followedUsers: new Set(), followedNiches: new Set(),
-                ownNotes: new Set()
-            },
-            users: {},   // { id: { user_obj } }
-            niches: {},  // { id: { niche_obj } }
-            notes: {}    // { id: { note_obj } }
-        };
-
-        // --- 3. MOCK ENGINE (The System Integrator) ---
-        const MockEngine = {
-            generate() {
-                // 1. Initialize Niches
-                const nicheData = [
-                    { id: 'tech', name: 'Tecnología', icon: '💻' },
-                    { id: 'startups', name: 'Startups', icon: '🚀' },
-                    { id: 'ai', name: 'IA', icon: '🤖' },
-                    { id: 'design', name: 'Diseño', icon: '🎨' },
-                    { id: 'philosophy', name: 'Filosofía', icon: '🤔' },
-                    { id: 'fitness', name: 'Fitness', icon: '💪' },
-                    { id: 'productivity', name: 'Productividad', icon: '⏱️' },
-                    { id: 'crypto', name: 'Crypto', icon: '🪙' }
-                ];
-                nicheData.forEach(n => AppState.niches[n.id] = { ...n, followersCount: Math.floor(Math.random() * 5000) });
-
-                // 2. Inject Users into State
-                users.forEach(u => { AppState.users[u.id] = u; });
-
-                // 3. Generate 80 Notes
-                const texts = [
-                    "La simplicidad es la máxima sofisticación.",
-                    "Construyendo en público es la mejor forma de aprender.",
-                    "El código es para humanos, no solo para máquinas.",
-                    "Un MVP debe resolver un problema real, no todos los problemas.",
-                    "La IA no va a reemplazarnos, pero alguien que sepa usarla sí.",
-                    "Deep work es el superpoder del siglo XXI.",
-                    "Menos reuniones, más ejecución.",
-                    "El diseño es cómo funciona, no solo cómo se ve."
-                ];
-
-                for (let i = 1; i <= 80; i++) {
-                    const authorId = `u_${Math.floor(Math.random() * 20) + 1}`;
-                    const nicheKeys = Object.keys(AppState.niches);
-                    const nId = Math.random() > 0.4 ? nicheKeys[Math.floor(Math.random() * nicheKeys.length)] : null;
-                    const id = `n_${i}`;
-                    
-                    AppState.notes[id] = {
-                        id, authorId,
-                        content: texts[Math.floor(Math.random() * texts.length)],
-                        visibility: Math.random() > 0.8 ? 'PRIVATE' : (Math.random() > 0.8 ? 'NICHE' : 'PUBLIC'),
-                        nicheId: nId,
-                        likesCount: Math.floor(Math.random() * 30),
-                        renotesCount: Math.floor(Math.random() * 5),
-                        timestamp: Date.now() - Math.floor(Math.random() * 50000000),
-                        isAiClassified: Math.random() > 0.7
-                    };
-                    
-                    // If it belongs to current user
-                    if (authorId === 'u_me') AppState.currentUser.ownNotes.add(id);
-                }
-                
-                // Setup initial relationships for the demo
-                AppState.currentUser.followedUsers.add('u_1').add('u_4');
-                AppState.currentUser.followedNiches.add('tech').add('ai');
-            }
-        };
-
-        // --- 4. API SIMULATION ---
-        const ApiService = {
-            async publish(content, visibility, nicheId) {
-                return new Promise(res => setTimeout(() => {
-                    const id = `n_${Date.now()}`;
-                    const note = {
-                        id, authorId: 'u_me', content, visibility, nicheId,
-                        likesCount: 0, renotesCount: 0, timestamp: Date.now(), isAiClassified: false
-                    };
-                    AppState.notes[id] = note;
-                    AppState.currentUser.ownNotes.add(id);
-                    res(note);
-                }, 800));
-            },
-            async classify(content) {
-                return new Promise(res => setTimeout(() => {
-                    const text = content.toLowerCase();
-                    if (text.includes('code') || text.includes('app')) res('tech');
-                    else if (text.includes('startup') || text.includes('mvp')) res('startups');
-                    else res('philosophy');
-                }, 1200));
-            }
-        };
-
-        // --- 5. VIEW TEMPLATES ---
-        const Templates = {
-            home: () => `
-                <div class="composer p-4 border-b border-[var(--border-color)] flex gap-3">
-                    <div class="avatar w-10 h-10 flex items-center justify-center text-sm font-bold text-white bg-[var(--accent-primary)] rounded-full">T</div>
-                    <div class="flex-1">
-                        <textarea id="note-input" class="w-full text-lg bg-transparent border-none resize-none outline-none" placeholder="¿Qué estás aprendiendo?"></textarea>
-                        <div class="flex justify-between items-center mt-2 pt-2 border-t border-[var(--border-color)]">
-                            <div class="flex gap-2">
-                                <select id="note-visibility" class="text-xs font-semibold bg-[var(--bg-base)] p-1 rounded-full border border-[var(--border-color)]">
-                                    <option value="PUBLIC">🌍 Público</option>
-                                    <option value="NICHE">🎯 Nicho</option>
-                                    <option value="PRIVATE">🔒 Privado</option>
-                                </select>
-                                <select id="note-niche" class="text-xs font-semibold bg-[var(--bg-base)] p-1 rounded-full border border-[var(--border-color)]">
-                                    <option value="">✨ IA Auto</option>
-                                    ${Object.values(AppState.niches).map(n => `<option value="${n.id}">${n.icon} ${n.name}</option>`).join('')}
-                                </select>
-                            </div>
-                            <button id="btn-publish" class="bg-[var(--accent-primary)] text-white px-5 py-1.5 rounded-full font-bold text-sm">Postear</button>
-                        </div>
-                    </div>
-                </div>
-                <div id="feed-container" class="flex flex-col"></div>
-            `,
-            niches: () => `
-                <div class="p-6">
-                    <h2 class="text-2xl font-extrabold mb-6">Explorar Nichos</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        ${Object.values(AppState.niches).map(n => `
-                            <div class="widget p-5 rounded-2xl border border-[var(--border-color)] flex items-center justify-between hover:bg-[var(--bg-surface-hover)] transition-all cursor-pointer" onclick="UI.handleFollowNiche('${n.id}')">
-                                <div class="flex items-center gap-4">
-                                    <span class="text-3xl">${n.icon}</span>
-                                    <div>
-                                        <div class="font-bold">${n.name}</div>
-                                        <div class="text-xs text-[var(--text-secondary)]">${n.followersCount.toLocaleString()} notas</div>
-                                    </div>
-                                </div>
-                                <button class="btn-follow text-xs font-bold ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''}" data-type="niche" data-id="${n.id}">
-                                    ${AppState.currentUser.followedNiches.has(n.id) ? 'Siguiendo' : 'Seguir'}
-                                </button>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `,
-            brain: () => `
-                <div class="p-6">
-                    <h2 class="text-2xl font-extrabold mb-2">Segundo Cerebro</h2>
-                    <p class="text-[var(--text-secondary)] text-sm mb-6">Tus notas privadas y guardadas.</p>
-                    <div id="feed-container" class="flex flex-col"></div>
-                </div>
-            `,
-            profile: () => {
-                const u = AppState.currentUser;
-                return `
-                    <div class="p-6">
-                        <div class="flex flex-col items-center text-center mb-8">
-                            <div class="avatar w-24 h-24 text-3xl mb-4">${u.avatar}</div>
-                            <h2 class="text-2xl font-extrabold">${u.name}</h2>
-                            <p class="text-[var(--text-secondary)]">@${u.handle}</p>
-                            <p class="mt-4 text-sm max-w-xs">${u.bio}</p>
-                            <div class="flex gap-8 mt-6">
-                                <div class="text-center"><div class="font-bold">${u.followingCount}</div><div class="text-xs text-[var(--text-secondary)]">Siguiendo</div></div>
-                                <div class="text-center"><div class="font-bold">${u.followersCount}</div><div class="text-xs text-[var(--text-secondary)]">Seguidores</div></div>
-                            </div>
-                        </div>
-                        <h3 class="font-bold text-lg mb-4">Mis Notas</h3>
-                        <div id="feed-container" class="flex flex-col"></div>
-                    </div>
-                `;
-            }
-        };
-
-        // --- 5. UI CONTROLLER (The Brain) ---
-        const UI = {
-            init() {
-                MockEngine.generate();
-                this.cacheDOM();
-                this.bindEvents();
-                this.render();
-                this.renderSidebars();
-            },
-
-            cacheDOM() {
-                this.container = document.getElementById('view-container');
-                this.viewTitle = document.getElementById('view-title');
-                this.feedContainer = document.getElementById('feed-container');
-                this.navItems = document.querySelectorAll('.nav-item, .nav-item-desktop');
-                this.toast = document.getElementById('toast');
-                this.themeBtn = document.getElementById('theme-toggle');
-            },
-
-            bindEvents() {
-                // Nav
-                this.navItems.forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        this.navigate(btn.dataset.view);
-                    });
-                });
-
-                // Theme
-                this.themeBtn.addEventListener('click', () => this.toggleTheme());
-
-                // Global Interactions (Delegation)
-                document.addEventListener('click', (e) => {
-                    const btn = e.target.closest('.action-btn, .opt-btn, .btn-follow, .btn-primary');
-                    if (!btn) return;
-
-                    const { action, id, type } = btn.dataset;
-                    if (action === 'like') this.handleLike(id, btn);
-                    if (action === 'save') this.handleSave(id, btn);
-                    if (action === 'delete') this.handleDelete(id);
-                    if (action === 'edit') this.handleEdit(id);
-                    if (action === 'renote') this.handleRenote(id, btn);
-                    if (btn.classList.contains('btn-follow')) {
-                        if (type === 'user') this.handleFollowUser(id, btn);
-                        if (type === 'niche') this.handleFollowNiche(id, btn);
-                    }
-                    if (btn.id === 'btn-publish') this.handlePublish();
-                });
-            },
-
-            navigate(view) {
-                AppState.currentView = view;
-                this.navItems.forEach(n => n.classList.remove('active'));
-                document.querySelectorAll(`[data-view="${view}"]`).forEach(n => n.classList.add('active'));
-                this.render();
-            },
-
-            render() {
-                const view = AppState.currentView;
-                this.viewTitle.textContent = view.charAt(0).toUpperCase() + view.slice(1);
-                this.container.innerHTML = Templates[view] ? Templates[view]() : `<div>Error</div>`;
-                
-                if (view === 'home' || view === 'profile') {
-                    this.bindComposer();
-                    this.renderFeed();
-                } else if (view === 'niches') {
-                    this.renderNicheGrid();
-                }
-                this.renderSidebars();
-            },
-
-            renderFeed() {
-                this.feedContainer.innerHTML = '';
-                let notes = Object.values(AppState.notes).sort((a,b) => b.timestamp - a.timestamp);
-
-                // Filter logic
-                if (AppState.currentView === 'brain') {
-                    notes = notes.filter(n => n.visibility === 'PRIVATE' || AppState.currentUser.savedNotes.has(n.id));
-                } else if (AppState.currentView === 'profile') {
-                    notes = notes.filter(n => n.authorId === AppState.currentUser.id);
-                } else if (AppState.currentView === 'home') {
-                    notes = notes.filter(n => 
-                        n.visibility !== 'PRIVATE' && 
-                        (AppState.currentUser.followedUsers.has(n.authorId) || 
-                         AppState.currentUser.followedNiches.has(n.nicheId) || 
-                         n.authorId === AppState.currentUser.id)
-                    );
-                }
-
-                if (notes.length === 0) {
-                    this.feedContainer.innerHTML = `<div class="p-20 text-center opacity-50">No hay nada aquí aún.</div>`;
-                    return;
-                }
-
-                notes.forEach(note => {
-                    const author = AppState.users[note.authorId];
-                    const niche = note.nicheId ? AppState.niches[note.nicheId] : null;
-                    const isOwn = note.authorId === AppState.currentUser.id;
-
-                    const card = document.createElement('div');
-                    card.className = 'note-card p-4 border-b border-[var(--border-color)] animate-fadeIn';
-                    card.innerHTML = `
-                        <div class="flex justify-between items-start mb-2">
-                            <div class="flex gap-3">
-                                <div class="avatar w-10 h-10 flex items-center justify-center text-sm font-bold text-white bg-indigo-500">${author.avatar}</div>
-                                <div>
-                                    <div class="font-bold text-sm">${author.name} <span class="text-[var(--text-secondary)] font-normal text-xs">@${author.handle}</span></div>
-                                    <div class="text-[10px] text-[var(--text-secondary)]">${this.timeAgo(note.timestamp)}</div>
-                                </div>
-                            </div>
-                            ${isOwn ? `
-                                <div class="flex gap-1">
-                                    <button class="opt-btn edit p-1" data-action="edit" data-id="${note.id}">✏️</button>
-                                    <button class="opt-btn p-1" data-action="delete" data-id="${note.id}">🗑️</button>
-                                </div>
-                            ` : ''}
-                        </div>
-                        <div class="text-sm leading-relaxed ml-14 mb-3">${note.content}</div>
-                        <div class="ml-14 flex flex-wrap gap-2 mb-3">
-                            ${note.isAiClassified ? `<span class="badge badge-ai text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600">✨ Gemini AI</span>` : ''}
-                            ${niche ? `<span class="badge text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--bg-base)] text-[var(--text-secondary)] border border-[var(--border-color)]">${niche.icon} ${niche.name}</span>` : ''}
-                            ${note.visibility === 'PRIVATE' ? `<span class="badge text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">🔒 Privado</span>` : ''}
-                        </div>
-                        <div class="flex gap-6 ml-14 text-[var(--text-secondary)] text-xs font-semibold">
-                            <button class="action-btn flex items-center gap-1 ${AppState.currentUser.likedNotes.has(note.id) ? 'liked' : ''}" data-action="like" data-id="${note.id}">
-                                <span class="icon">${AppState.currentUser.likedNotes.has(note.id) ? '❤️' : '🤍'}</span> ${note.likesCount}
-                            </button>
-                            <button class="action-btn flex items-center gap-1 ${AppState.currentUser.renotedNotes.has(note.id) ? 'renoted' : ''}" data-action="renote" data-id="${note.id}">
-                                <span class="icon">🔄</span> ${note.renotesCount}
-                            </button>
-                            <button class="action-btn flex items-center gap-1 ${AppState.currentUser.savedNotes.has(note.id) ? 'saved' : ''}" data-action="save" data-id="${note.id}">
-                                <span class="icon">🧠</span>
-                            </button>
-                        </div>
-                    `;
-                    this.feedContainer.appendChild(card);
-                });
-            },
-
-            renderSidebars() {
-                const nicheList = document.getElementById('trending-niches');
-                if (nicheList) {
-                    nicheList.innerHTML = Object.values(AppState.niches).slice(0, 5).map(n => `
-                        <div class="flex justify-between items-center">
-                            <div class="text-sm font-medium">${n.icon} ${n.name}</div>
-                            <button class="btn-follow text-xs font-bold ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''}" data-type="niche" data-id="${n.id}">
-                                ${AppState.currentUser.followedNiches.has(n.id) ? 'Siguiendo' : 'Seguir'}
-                            </button>
-                        </div>
-                    `).join('');
-                }
-
-                const userList = document.getElementById('suggested-users');
-                if (userList) {
-                    userList.innerHTML = Object.values(AppState.users)
-                        .filter(u => u.id !== 'u_me' && !AppState.currentUser.followedUsers.has(u.id))
-                        .slice(0, 3).map(u => `
-                            <div class="flex justify-between items-center">
-                                <div class="flex items-center gap-2">
-                                    <div class="avatar w-8 h-8 text-[10px]">${u.avatar}</div>
-                                    <div class="text-sm font-bold leading-tight">${u.name}</div>
-                                </div>
-                                <button class="btn-follow text-xs font-bold ${AppState.currentUser.followedUsers.has(u.id) ? 'following' : ''}" data-type="user" data-id="${u.id}">
-                                    ${AppState.currentUser.followedUsers.has(u.id) ? 'Siguiendo' : 'Seguir'}
-                                </button>
-                            </div>
-                        `).join('');
-                }
-            },
-
-            // --- LOGIC HANDLERS ---
-            bindComposer() {
-                const btn = document.getElementById('btn-publish');
-                if (btn) btn.onclick = () => this.handlePublish();
-            },
-
-            focusComposer() {
-                this.navigate('home');
-                setTimeout(() => document.getElementById('note-input').focus(), 100);
-            },
-
-            async handlePublish() {
-                const content = document.getElementById('note-input').value.trim();
-                const visibility = document.getElementById('note-visibility').value;
-                const nicheId = document.getElementById('note-niche').value;
-
-                if (!content || AppState.isPublishing) return;
-
-                AppState.isPublishing = true;
-                this.showToast("Publicando...");
-
-                try {
-                    let finalNiche = nicheId || null;
-                    let isAi = false;
-                    if (!nicheId && visibility !== 'PRIVATE') {
-                        finalNiche = await ApiService.classify(content);
-                        isAi = true;
-                    }
-                    
-                    const note = await ApiService.publish(content, visibility, finalNiche);
-                    note.isAiClassified = isAi;
-                    this.showToast("✅ Publicado");
-                    this.render();
-                } catch (e) {
-                    this.showToast("❌ Error");
-                } finally {
-                    AppState.isPublishing = false;
-                }
-            },
-
-            handleLike(id, btn) {
-                const note = AppState.notes[id];
-                const isLiked = AppState.currentUser.likedNotes.has(id);
-                if (isLiked) {
-                    AppState.currentUser.likedNotes.delete(id);
-                    note.likesCount--;
-                } else {
-                    AppState.currentUser.likedNotes.add(id);
-                    note.likesCount++;
-                }
-                btn.classList.toggle('liked', !isLiked);
-                btn.innerHTML = `<span class="icon">${isLiked ? '🤍' : '❤️'}</span> ${note.likesCount}`;
-            },
-
-            handleSave(id, btn) {
-                const isSaved = AppState.currentUser.savedNotes.has(id);
-                if (isSaved) AppState.currentUser.savedNotes.delete(id);
-                else AppState.currentUser.savedNotes.add(id);
-                btn.classList.toggle('saved', !isSaved);
-                this.showToast(!isSaved ? "🧠 Guardado en Cerebro" : "Removido");
-                this.render();
-            },
-
-            handleRenote(id, btn) {
-                const note = AppState.notes[id];
-                const isRenoted = AppState.currentUser.renotedNotes.has(id);
-                if (isRenoted) AppState.currentUser.renotedNotes.delete(id);
-                else AppState.currentUser.renotedNotes.add(id);
-                btn.classList.toggle('renoted', !isRenoted);
-                btn.innerHTML = `<span class="icon">🔄</span> ${isRenoted ? note.renotesCount - 1 : note.renotesCount + 1}`;
-            },
-
-            handleDelete(id) {
-                if(confirm("¿Eliminar nota?")) {
-                    delete AppState.notes[id];
-                    this.showToast("🗑️ Eliminada");
-                    this.render();
-                }
-            },
-
-            handleEdit(id) {
-                const note = AppState.notes[id];
-                const text = prompt("Editar nota:", note.content);
-                if (text) {
-                    note.content = text;
-                    this.showToast("✏️ Actualizada");
-                    this.render();
-                }
-            },
-
-            handleFollowUser(userId, btn) {
-                const isFollowing = AppState.currentUser.followedUsers.has(userId);
-                if (isFollowing) AppState.currentUser.followedUsers.delete(userId);
-                else AppState.currentUser.followedUsers.add(userId);
-                btn.textContent = isFollowing ? 'Seguir' : 'Siguiendo';
-                btn.classList.toggle('following', !isFollowing);
-                this.render();
-            },
-
-            handleFollowNiche(nicheId, btn) {
-                const isFollowing = AppState.currentUser.followedNiches.has(nicheId);
-                if (isFollowing) AppState.currentUser.followedNiches.delete(nicheId);
-                else AppState.currentUser.followedNiches.add(nicheId);
-                btn.textContent = isFollowing ? 'Seguir' : 'Siguiendo';
-                btn.classList.toggle('following', !isFollowing);
-                this.render();
-            },
-
-            toggleTheme() {
-                const theme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-                document.documentElement.setAttribute('data-theme', theme);
-                localStorage.setItem('theme', theme);
-            },
-
-            showToast(msg) {
-                this.toast.textContent = msg;
-                this.toast.classList.add('show');
-                setTimeout(() => this.toast.classList.remove('show'), 2500);
-            },
-
-            timeAgo(ts) {
-                const diff = Math.floor((Date.now() - ts) / 1000);
-                if (diff < 60) return 'Ahora';
-                if (diff < 3600) return `${Math.floor(diff/60)}m`;
-                if (diff < 86400) return `${Math.floor(diff/3600)}h`;
-                return `${Math.floor(diff/86400)}d`;
-            },
-
-            escapeHTML(str) {
-                const div = document.createElement('div');
-                div.textContent = str;
-                return div.innerHTML;
-            }
-        };
-
-        document.addEventListener('DOMContentLoaded', () => UI.init());
-    </script>
+    <!-- MOTOR DE LA APLICACIÓN (Lógica de Negocio y Renderizado) -->
+    <script src="script.js"></script>
 </body>
 </html>
