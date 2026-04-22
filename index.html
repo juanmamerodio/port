@@ -1,243 +1,144 @@
 <!DOCTYPE html>
-<html lang="es" class="scroll-smooth">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modelado - Sistema de Cocina | RestoSys</title>
-    
-    <link rel="preconnect" href="https://cdn.tailwindcss.com">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍🍳</text></svg>">
-
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: { extend: { colors: { brand: { 500: '#3b82f6', 600: '#2563eb' } } } }
-        }
-    </script>
-    
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .mermaid { display: flex; justify-content: center; margin: 1.5rem 0; transition: opacity 0.4s ease-in; }
-        .mermaid svg { max-width: 100%; height: auto; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        .diagram-error { color: #ef4444; background: #450a0a; padding: 1rem; border-radius: 0.5rem; border: 1px solid #7f1d1d; text-align: center; font-size: 0.875rem; }
-    </style>
+    <title>Notebing - Inicio</title>
 </head>
-<body class="bg-slate-900 text-slate-300 antialiased flex flex-col md:flex-row min-h-screen">
+<body>
 
-    <aside class="w-full md:w-64 bg-slate-950 border-r border-slate-800 p-6 flex flex-col sticky top-0 h-auto md:h-screen z-20 shrink-0 overflow-y-auto">
-        <div class="mb-8">
-            <h1 class="text-xl font-bold text-white flex items-center gap-2">
-                <svg class="w-6 h-6 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-                RestoSys Docs
-            </h1>
-            <p class="text-xs text-slate-500 mt-2">Módulo de Cocina v1.1</p>
+    <!-- BARRA DE NAVEGACIÓN SUPERIOR / APP BAR -->
+    <header>
+        <h1>Notebing</h1>
+        <form action="/search" method="GET">
+            <label for="search-bar">Buscar en Notebing:</label>
+            <input type="search" id="search-bar" name="q" placeholder="Buscar nichos, notas o usuarios...">
+            <button type="submit">Buscar</button>
+        </form>
+        <div class="user-profile-menu">
+            <img src="avatar.jpg" alt="Tu perfil" width="40" height="40">
+            <span>@usuario_dev</span>
         </div>
-        <nav class="flex-1 space-y-1 text-sm font-medium">
-            <a href="#dfd" class="nav-link block px-3 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors">1. Diagramas de Flujo (DFD)</a>
-            <a href="#der" class="nav-link block px-3 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors">2. Entidad Relación (DER)</a>
-            <a href="#dlr" class="nav-link block px-3 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors">3. Lógico Relacional (DLR)</a>
-            <a href="#dte" class="nav-link block px-3 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors">4. Estados (DTE)</a>
-            <a href="#casos-uso" class="nav-link block px-3 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors">5. Casos de Uso</a>
-            <a href="#clases" class="nav-link block px-3 py-2 rounded-md hover:bg-slate-800 hover:text-white transition-colors">6. Diagrama de Clases</a>
+    </header>
+
+    <!-- LAYOUT PRINCIPAL A 3 COLUMNAS -->
+    <div style="display: flex;">
+
+        <!-- MENÚ DE NAVEGACIÓN LATERAL (Drawer / BottomNav en Mobile) -->
+        <nav>
+            <ul>
+                <li><a href="/home">🏠 Inicio (Feed Híbrido)</a></li>
+                <li><a href="/niches">🎯 Mis Nichos</a></li>
+                <li><a href="/brain">🧠 Segundo Cerebro (Privado)</a></li>
+                <li><a href="/profile">👤 Perfil</a></li>
+                <li><a href="/settings">⚙️ Configuración</a></li>
+            </ul>
+            <button>Escribir Nota</button>
         </nav>
-    </aside>
 
-    <main class="flex-1 p-6 md:p-10 lg:p-14 overflow-y-auto w-full">
-        <div class="max-w-5xl mx-auto space-y-16">
-            <header class="border-b border-slate-800 pb-8">
-                <h2 class="text-3xl font-bold text-white mb-4">Documentación Arquitectónica: La Cocina</h2>
-                <p class="text-slate-400 leading-relaxed">Modelado técnico del sistema de gestión de cocina.</p>
-            </header>
+        <!-- COLUMNA CENTRAL: CONTENIDO PRINCIPAL (LazyColumn en Compose) -->
+        <main>
+            <!-- COMPONENTE: CREAR NOTA -->
+            <section aria-labelledby="create-note-title">
+                <h2 id="create-note-title">¿Qué estás pensando o aprendiendo?</h2>
+                <form action="/api/notes" method="POST">
+                    <textarea name="content" rows="3" placeholder="Escribe una nota rápida..." required></textarea>
+                    
+                    <fieldset>
+                        <legend>Visibilidad:</legend>
+                        <label><input type="radio" name="visibility" value="PUBLIC" checked> Público</label>
+                        <label><input type="radio" name="visibility" value="NICHE"> Solo Nicho</label>
+                        <label><input type="radio" name="visibility" value="PRIVATE"> Privado (Segundo Cerebro)</label>
+                    </fieldset>
 
-            <!-- DFD -->
-            <section id="dfd" class="scroll-mt-10">
-                <h3 class="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
-                    <span class="bg-brand-600 text-white text-xs px-2 py-1 rounded">01</span> DFD
-                </h3>
-                <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 mb-8 shadow-lg">
-                    <div class="mermaid opacity-0">
-                        flowchart LR
-                            Mozo[Mozo/Caja] == "Ingresa Comanda" ==> SistCocina(("Sistema Cocina"))
-                            SistCocina == "Informa Estado" ==> Mozo
-                            Gerencia[Gerencia] == "Filtros" ==> SistCocina
-                            SistCocina == "Reportes" ==> Gerencia
-                            SistCocina -. "Consulta" .-> DB[(Base de Datos)]
-                    </div>
-                </div>
+                    <label for="niche-select">Nicho (Opcional):</label>
+                    <select name="nicheId" id="niche-select">
+                        <option value="">Que la IA lo clasifique...</option>
+                        <option value="1">Startups</option>
+                        <option value="2">Desarrollo Android</option>
+                        <option value="3">Filosofía</option>
+                    </select>
+
+                    <button type="submit">Publicar Nota</button>
+                </form>
             </section>
 
-            <!-- DER -->
-            <section id="der" class="scroll-mt-10">
-                <h3 class="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
-                    <span class="bg-brand-600 text-white text-xs px-2 py-1 rounded">02</span> DER
-                </h3>
-                <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 shadow-lg">
-                    <div class="mermaid opacity-0">
-                        erDiagram
-                            PEDIDO ||--|{ DETALLE_PEDIDO : contiene
-                            PLATO ||--|{ DETALLE_PEDIDO : incluye
-                            MENU_DIA ||--|{ PLATO : ofrece
-                            PLATO ||--|{ RECETA : requiere
-                            MATERIA_PRIMA ||--|{ RECETA : compone
-                    </div>
-                </div>
+            <hr>
+
+            <!-- COMPONENTE: FEED DE NOTAS -->
+            <section aria-labelledby="feed-title">
+                <h2 id="feed-title">Tu Feed</h2>
+                
+                <!-- NOTA 1: De alguien que sigues -->
+                <article>
+                    <header>
+                        <img src="user1.jpg" alt="Avatar de usuario" width="30" height="30">
+                        <strong>@johndoe</strong> 
+                        <span>hace 2 horas</span>
+                    </header>
+                    <p>Acabo de entender cómo funciona Clean Architecture en Android. Separar la capa de Dominio hace que testear los Use Cases sea un juego de niños. 🚀</p>
+                    <footer>
+                        <a href="/niche/android">🏷️ Desarrollo Android</a>
+                        <button>❤️ 12 Likes</button>
+                        <button>🔄 Re-Note</button>
+                        <button>🧠 Guardar en Segundo Cerebro</button>
+                    </footer>
+                </article>
+
+                <hr>
+
+                <!-- NOTA 2: Recomendada por IA basada en nicho -->
+                <article>
+                    <header>
+                        <span>✨ Recomendado por Gemini (Nicho: Startups)</span><br>
+                        <img src="user2.jpg" alt="Avatar de usuario" width="30" height="30">
+                        <strong>@startup_founder</strong>
+                        <span>hace 5 horas</span>
+                    </header>
+                    <p>El mayor error al crear un MVP es añadir demasiadas funcionalidades. Construye el flujo principal, lánzalo y que los usuarios te digan qué falta.</p>
+                    <footer>
+                        <a href="/niche/startups">🏷️ Startups</a>
+                        <button>❤️ 45 Likes</button>
+                        <button>🔄 Re-Note</button>
+                        <button>🧠 Guardar en Segundo Cerebro</button>
+                    </footer>
+                </article>
+
+            </section>
+        </main>
+
+        <!-- COLUMNA DERECHA: RECOMENDACIONES (Sidebar) -->
+        <aside>
+            <section aria-labelledby="suggested-niches-title">
+                <h2 id="suggested-niches-title">Nichos para ti</h2>
+                <ul>
+                    <li>
+                        <strong>Inteligencia Artificial</strong>
+                        <p>15k Notas activas</p>
+                        <button>Seguir Nicho</button>
+                    </li>
+                    <li>
+                        <strong>Productividad</strong>
+                        <p>8k Notas activas</p>
+                        <button>Seguir Nicho</button>
+                    </li>
+                </ul>
             </section>
 
-            <!-- DLR -->
-            <section id="dlr" class="scroll-mt-10">
-                <h3 class="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
-                    <span class="bg-brand-600 text-white text-xs px-2 py-1 rounded">03</span> DLR
-                </h3>
-                <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 shadow-lg overflow-x-auto">
-                    <div class="mermaid opacity-0">
-                        classDiagram
-                            class Pedidos { +int id_pedido, +date fecha, +string estado }
-                            class Detalle_Pedidos { +int id_detalle, +int id_pedido, +int id_plato }
-                            class Platos { +int id_plato, +string nombre }
-                            Pedidos "1" -- "*" Detalle_Pedidos
-                            Platos "1" -- "*" Detalle_Pedidos
-                    </div>
-                </div>
+            <section aria-labelledby="suggested-users-title">
+                <h2 id="suggested-users-title">A quién seguir</h2>
+                <ul>
+                    <li>
+                        <strong>@android_expert</strong>
+                        <button>Seguir</button>
+                    </li>
+                    <li>
+                        <strong>@tech_philosophy</strong>
+                        <button>Seguir</button>
+                    </li>
+                </ul>
             </section>
+        </aside>
 
-            <!-- DTE -->
-            <section id="dte" class="scroll-mt-10">
-                <h3 class="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
-                    <span class="bg-brand-600 text-white text-xs px-2 py-1 rounded">04</span> DTE
-                </h3>
-                <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 shadow-lg">
-                    <div class="mermaid opacity-0">
-                        stateDiagram-v2
-                            [*] --> PEDIDO
-                            state validacion <<choice>>
-                            PEDIDO --> validacion
-                            validacion --> EN_PROCESO : OK
-                            validacion --> CANCELADO : Error
-                            EN_PROCESO --> TERMINADO
-                            TERMINADO --> [*]
-                    </div>
-                </div>
-            </section>
-
-            <!-- Casos de Uso -->
-            <section id="casos-uso" class="scroll-mt-10">
-                <h3 class="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
-                    <span class="bg-brand-600 text-white text-xs px-2 py-1 rounded">05</span> Casos de Uso
-                </h3>
-                <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 shadow-lg">
-                    <div class="mermaid opacity-0">
-                        flowchart LR
-                            subgraph Sistema
-                                CU1(("Ingresar Pedido"))
-                                CU2(("Validar Stock"))
-                            end
-                            Mozo[\Mozo/] --> CU1
-                            CU1 -.-> CU2
-                    </div>
-                </div>
-            </section>
-
-            <!-- Clases (EL PUNTO CRÍTICO CORREGIDO) -->
-            <section id="clases" class="scroll-mt-10 mb-20">
-                <h3 class="text-2xl font-semibold text-white mb-6 flex items-center gap-2">
-                    <span class="bg-brand-600 text-white text-xs px-2 py-1 rounded">06</span> Diagrama de Clases
-                </h3>
-                <div class="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 shadow-lg">
-                    <div class="mermaid opacity-0">
-                        classDiagram
-                            class Pedido {
-                                -int id
-                                -Date fecha
-                                +cambiarEstado()
-                            }
-                            class EstadoPedido {
-                                <<enumeration>>
-                                PEDIDO
-                                EN_PROCESO
-                                CANCELADO
-                                TERMINADO
-                            }
-                            class MenuService {
-                                +verificarPlato() boolean
-                            }
-                            class InventarioService {
-                                +verificarDisponibilidad() boolean
-                            }
-                            class ControladorCocina {
-                                +recibirPedido()
-                            }
-                            class GestorReportes {
-                                +obtenerPedidos() List
-                            }
-                            
-                            %% Relaciones definidas al final para evitar errores de parseo
-                            ControladorCocina --> Pedido
-                            ControladorCocina --> MenuService
-                            ControladorCocina --> InventarioService
-                            Pedido --> EstadoPedido
-                            GestorReportes --> Pedido
-                    </div>
-                </div>
-            </section>
-        </div>
-    </main>
-
-    <script type="module">
-        try {
-                        // ...
-            const mermaid = mermaidModule.default;
-            
-            mermaid.initialize({ 
-                startOnLoad: false, // 1. CAMBIO CLAVE: Apagamos el auto-render
-                theme: 'base',
-                themeVariables: {
-                    primaryColor: '#1e293b', 
-                    primaryTextColor: '#f8fafc', 
-                    primaryBorderColor: '#334155', 
-                    lineColor: '#64748b', 
-                    secondaryColor: '#2563eb', 
-                    tertiaryColor: '#0f172a' 
-                },
-                flowchart: { curve: 'basis' },
-                fontFamily: 'Inter, sans-serif'
-            });
-
-            // 2. CAMBIO CLAVE: Le decimos explícitamente qué clases procesar
-            await mermaid.run({ querySelector: '.mermaid' }); 
-            
-            document.querySelectorAll('.mermaid').forEach(el => el.classList.remove('opacity-0'));
-            // ...
-
-        } catch (error) {
-            console.error('MermaidJS Error:', error);
-            document.querySelectorAll('.mermaid').forEach(el => {
-                el.classList.remove('opacity-0');
-                el.innerHTML = `<div class="diagram-error">Error de renderizado en el diagrama.</div>`;
-            });
-        }
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const id = entry.target.getAttribute('id');
-                    document.querySelectorAll('.nav-link').forEach(link => {
-                        link.classList.remove('bg-slate-800', 'text-white');
-                        link.classList.add('text-slate-400');
-                        if (link.getAttribute('href') === `#${id}`) {
-                            link.classList.add('bg-slate-800', 'text-white');
-                        }
-                    });
-                }
-            });
-        }, { threshold: 0.2 });
-
-        document.querySelectorAll('section').forEach(section => observer.observe(section));
-    </script>
+    </div>
 </body>
 </html>
