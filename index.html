@@ -190,8 +190,12 @@
                     
                     // If it belongs to current user
                     if (authorId === 'u_me') AppState.currentUser.ownNotes.add(id);
+                    AppState.currentUser.followedUsers.add('u_1').add('u_4');
+                AppState.currentUser.followedNiches.add('tech').add('ai');
+
+                    
         // --- 3. API SIMULATION ---
-        const ApiService = {
+         const ApiService = {
             async publish(content, visibility, nicheId) {
                 return new Promise(res => setTimeout(() => {
                     const id = `n_${Date.now()}`;
@@ -206,8 +210,9 @@
             },
             async classify(content) {
                 return new Promise(res => setTimeout(() => {
-                    if (content.includes('code') || content.includes('app')) res('tech');
-                    else if (content.includes('startup') || content.includes('mvp')) res('startups');
+                    const text = content.toLowerCase();
+                    if (text.includes('code') || text.includes('app')) res('tech');
+                    else if (text.includes('startup') || text.includes('mvp')) res('startups');
                     else res('philosophy');
                 }, 1200));
             }
@@ -294,6 +299,7 @@
                 this.cacheDOM();
                 this.bindEvents();
                 this.render();
+                this.renderSidebars();
             },
 
             cacheDOM() {
@@ -306,7 +312,7 @@
             },
 
             bindEvents() {
-                // Navigation
+                // Nav
                 this.navItems.forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         e.preventDefault();
@@ -317,21 +323,22 @@
                 // Theme
                 this.themeBtn.addEventListener('click', () => this.toggleTheme());
 
-                // Global Click Listener for Feed (Optimistic UI)
+                // Global Interactions (Delegation)
                 document.addEventListener('click', (e) => {
-                    const btn = e.target.closest('.action-btn, .opt-btn, .btn-follow');
+                    const btn = e.target.closest('.action-btn, .opt-btn, .btn-follow, .btn-primary');
                     if (!btn) return;
-                    
-                    const { action, id } = btn.dataset;
+
+                    const { action, id, type } = btn.dataset;
                     if (action === 'like') this.handleLike(id, btn);
                     if (action === 'save') this.handleSave(id, btn);
                     if (action === 'delete') this.handleDelete(id);
                     if (action === 'edit') this.handleEdit(id);
                     if (action === 'renote') this.handleRenote(id, btn);
                     if (btn.classList.contains('btn-follow')) {
-                        if (btn.dataset.type === 'user') this.handleFollowUser(id, btn);
-                        if (btn.dataset.type === 'niche') this.handleFollowNiche(id, btn);
+                        if (type === 'user') this.handleFollowUser(id, btn);
+                        if (type === 'niche') this.handleFollowNiche(id, btn);
                     }
+                    if (btn.id === 'btn-publish') this.handlePublish();
                 });
             },
 
@@ -345,19 +352,14 @@
             render() {
                 const view = AppState.currentView;
                 this.viewTitle.textContent = view.charAt(0).toUpperCase() + view.slice(1);
+                this.container.innerHTML = Templates[view] ? Templates[view]() : `<div>Error</div>`;
                 
-                // 1. Inject Template
-                this.container.innerHTML = Templates[view] ? Templates[view]() : `<div class="p-10 text-center">Vista no encontrada</div>`;
-                
-                // 2. Re-bind specific elements
                 if (view === 'home' || view === 'profile') {
                     this.bindComposer();
                     this.renderFeed();
                 } else if (view === 'niches') {
                     this.renderNicheGrid();
                 }
-
-                // 3. Update Sidebars (Desktop)
                 this.renderSidebars();
             },
 
@@ -365,7 +367,7 @@
                 this.feedContainer.innerHTML = '';
                 let notes = Object.values(AppState.notes).sort((a,b) => b.timestamp - a.timestamp);
 
-                // Filtering Logic
+                // Filter logic
                 if (AppState.currentView === 'brain') {
                     notes = notes.filter(n => n.visibility === 'PRIVATE' || AppState.currentUser.savedNotes.has(n.id));
                 } else if (AppState.currentView === 'profile') {
@@ -380,22 +382,21 @@
                 }
 
                 if (notes.length === 0) {
-                    this.feedContainer.innerHTML = `<div class="empty-state p-10 text-center"><div class="text-5xl mb-4">📭</div><p class="text-lg font-bold">Nada por aquí</p></div>`;
+                    this.feedContainer.innerHTML = `<div class="p-20 text-center opacity-50">No hay nada aquí aún.</div>`;
                     return;
                 }
 
-                const frag = document.createDocumentFragment();
                 notes.forEach(note => {
-                    const author = AppState.users[note.author.id || note.authorId]; // Handle both mock and new
+                    const author = AppState.users[note.authorId];
                     const niche = note.nicheId ? AppState.niches[note.nicheId] : null;
                     const isOwn = note.authorId === AppState.currentUser.id;
 
-                    const div = document.createElement('div');
-                    div.className = 'note-card p-4 border-b border-[var(--border-color)] animate-fadeIn';
-                    div.innerHTML = `
+                    const card = document.createElement('div');
+                    card.className = 'note-card p-4 border-b border-[var(--border-color)] animate-fadeIn';
+                    card.innerHTML = `
                         <div class="flex justify-between items-start mb-2">
                             <div class="flex gap-3">
-                                <div class="avatar w-10 h-10 flex items-center justify-center rounded-full text-white font-bold bg-indigo-500">${author.avatar}</div>
+                                <div class="avatar w-10 h-10 flex items-center justify-center text-sm font-bold text-white bg-indigo-500">${author.avatar}</div>
                                 <div>
                                     <div class="font-bold text-sm">${author.name} <span class="text-[var(--text-secondary)] font-normal text-xs">@${author.handle}</span></div>
                                     <div class="text-[10px] text-[var(--text-secondary)]">${this.timeAgo(note.timestamp)}</div>
@@ -415,7 +416,7 @@
                             ${note.visibility === 'PRIVATE' ? `<span class="badge text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">🔒 Privado</span>` : ''}
                         </div>
                         <div class="flex gap-6 ml-14 text-[var(--text-secondary)] text-xs font-semibold">
-                            <button class="action-btn flex items-center gap-1 ${note.likesCount > 0 && AppState.currentUser.likedNotes.has(note.id) ? 'liked' : ''}" data-action="like" data-id="${note.id}">
+                            <button class="action-btn flex items-center gap-1 ${AppState.currentUser.likedNotes.has(note.id) ? 'liked' : ''}" data-action="like" data-id="${note.id}">
                                 <span class="icon">${AppState.currentUser.likedNotes.has(note.id) ? '❤️' : '🤍'}</span> ${note.likesCount}
                             </button>
                             <button class="action-btn flex items-center gap-1 ${AppState.currentUser.renotedNotes.has(note.id) ? 'renoted' : ''}" data-action="renote" data-id="${note.id}">
@@ -426,17 +427,9 @@
                             </button>
                         </div>
                     `;
-                    frag.appendChild(div);
+                    this.feedContainer.appendChild(card);
                 });
-                this.feedContainer.appendChild(frag);
             },
-
-            renderNicheGrid() {
-                const container = document.getElementById('feed-container'); // Use the main container
-                // In the template, the view-container is what we replace.
-                // If view is niches, the template has a grid.
-            },
-
             renderSidebars() {
                 // Trending Niches
                 const nicheContainer = document.getElementById('trending-niches');
