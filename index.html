@@ -126,6 +126,191 @@
         };
 
         // --- 2. MOCK ENGINE (DATA GENERATION) ---
+        const users = [
+  {
+    id: "u_1",
+    username: "alex_chen_dev",
+    avatar: "https://i.pravatar.cc/150?img=1",
+    bio: "Software Architect building scalable distributed systems.",
+    niches: ["tech", "productivity"],
+    followersCount: 842,
+    followingCount: 210
+  },
+  {
+    id: "u_2",
+    username: "elena_design",
+    avatar: "https://i.pravatar.cc/150?img=2",
+    bio: "Visual storyteller and UI enthusiast.",
+    niches: ["design", "productivity"],
+    followersCount: 1205,
+    followingCount: 430
+  },
+  {
+    id: "u_3",
+    username: "stoic_marcus",
+    avatar: "https://i.pravatar.cc/150?img=3",
+    bio: "Applying ancient wisdom to modern chaos.",
+    niches: ["philosophy", "productivity"],
+    followersCount: 560,
+    followingCount: 90
+  },
+  {
+    id: "u_4",
+    username: "sam_river_ai",
+    avatar: "https://i.pravatar.cc/150?img=4",
+    bio: "Exploring the frontiers of Large Language Models.",
+    niches: ["AI", "tech"],
+    followersCount: 3400,
+    followingCount: 510
+  },
+  {
+    id: "u_5",
+    username: "jordan_lift",
+    avatar: "https://i.pravatar.cc/150?img=5",
+    bio: "Daily gains and disciplined routines.",
+    niches: ["fitness", "productivity"],
+    followersCount: 2100,
+    followingCount: 340
+  },
+  {
+    id: "u_6",
+    username: "max_codes",
+    avatar: "https://i.pravatar.cc/150?img=6",
+    bio: "JavaScript fanatic and indie hacker.",
+    niches: ["tech", "startups"],
+    followersCount: 450,
+    followingCount: 120
+  },
+  {
+    id: "u_7",
+    username: "startup_queen",
+    avatar: "https://i.pravatar.cc/150?img=7",
+    bio: "Serial entrepreneur building in public.",
+    niches: ["startups", "design"],
+    followersCount: 890,
+    followingCount: 300
+  },
+  {
+    id: "u_8",
+    username: "phil_mind",
+    avatar: "https://i.pravatar.cc/150?img=8",
+    bio: "Seeking truth through logic and reason.",
+    niches: ["philosophy", "tech"],
+    followersCount: 320,
+    followingCount: 150
+  },
+  {
+    id: "u_9",
+    username: "fit_tech_guy",
+    avatar: "https://i.pravatar.cc/150?img=9",
+    bio: "Performance tracking and wearable tech enthusiast.",
+    niches: ["fitness", "tech"],
+    followersCount: 760,
+    followingCount: 280
+  },
+  {
+    id: "u_10",
+    username: "prod_hacker",
+    avatar: "https://i.pravatar.cc/150?img=10",
+    bio: "Systems to maximize human output.",
+    niches: ["productivity", "AI"],
+    followersCount: 1500,
+    followingCount: 400
+  },
+  {
+    id: "u_11",
+    username: "design_lead_pro",
+    avatar: "https://i.pravatar.cc/150?img=11",
+    bio: "Creative direction for global brands.",
+    niches: ["design", "startups"],
+    followersCount: 920,
+    followingCount: 210
+  },
+  {
+    id: "u_12",
+    username: "logic_coder",
+    avatar: "https://i.pravatar.cc/150?img=12",
+    bio: "Where technical implementation meets logic.",
+    niches: ["tech", "philosophy"],
+    followersCount: 410,
+    followingCount: 180
+  },
+  {
+    id: "u_13",
+    username: "ai_creative",
+    avatar: "https://i.pravatar.cc/150?img=13",
+    bio: "Generative art and AI-driven design.",
+    niches: ["AI", "design"],
+    followersCount: 1100,
+    followingCount: 350
+  },
+  {
+    id: "u_14",
+    username: "fit_founder",
+    avatar: "https://i.pravatar.cc/150?img=14",
+    bio: "Building empires and building muscle.",
+    niches: ["startups", "fitness"],
+    followersCount: 650,
+    followingCount: 190
+  },
+  {
+    id: "u_15",
+    username: "zen_mode_on",
+    avatar: "https://i.pravatar.cc/150?img=15",
+    bio: "Minimalism and deep work.",
+    niches: ["productivity", "philosophy"],
+    followersCount: 280,
+    followingCount: 110
+  },
+  {
+    id: "u_16",
+    username: "solo_dev_mike",
+    avatar: "https://i.pravatar.cc/150?img=16",
+    bio: "Bootstrapping SaaS products.",
+    niches: ["startups", "tech"],
+    followersCount: 540,
+    followingCount: 220
+  },
+  {
+    id: "u_17",
+    username: "bio_hacker_ai",
+    avatar: "https://i.pravatar.cc/150?img=17",
+    bio: "Optimizing biology with machine learning.",
+    niches: ["AI", "fitness"],
+    followersCount: 890,
+    followingCount: 410
+  },
+  {
+    id: "u_18",
+    username: "design_math",
+    avatar: "https://i.pravatar.cc/150?img=18",
+    bio: "Exploring the geometry of beautiful interfaces.",
+    niches: ["design", "philosophy"],
+    followersCount: 430,
+    followingCount: 120
+  },
+  {
+    id: "u_19",
+    username: "founder_flow",
+    avatar: "https://i.pravatar.cc/150?img=19",
+    bio: "Scaling from 0 to 1 without burnout.",
+    niches: ["startups", "productivity"],
+    followersCount: 1400,
+    followingCount: 380
+  },
+  {
+    id: "u_20",
+    username: "tech_athlete",
+    avatar: "https://i.pravatar.cc/150?img=20",
+    bio: "Code and cardio. Every single day.",
+    niches: ["tech", "fitness"],
+    followersCount: 310,
+    followingCount: 140
+  }
+];
+
+
+        
         const MockEngine = {
             generate() {
                 // Generate Niches
