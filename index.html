@@ -431,12 +431,11 @@
                 });
             },
             renderSidebars() {
-                // Trending Niches
-                const nicheContainer = document.getElementById('trending-niches');
-                if (nicheContainer) {
-                    nicheContainer.innerHTML = Object.values(AppState.niches).slice(0, 5).map(n => `
+                const nicheList = document.getElementById('trending-niches');
+                if (nicheList) {
+                    nicheList.innerHTML = Object.values(AppState.niches).slice(0, 5).map(n => `
                         <div class="flex justify-between items-center">
-                            <div class="text-sm font-medium"><span>${n.icon}</span> ${n.name}</div>
+                            <div class="text-sm font-medium">${n.icon} ${n.name}</div>
                             <button class="btn-follow text-xs font-bold ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''}" data-type="niche" data-id="${n.id}">
                                 ${AppState.currentUser.followedNiches.has(n.id) ? 'Siguiendo' : 'Seguir'}
                             </button>
@@ -444,10 +443,9 @@
                     `).join('');
                 }
 
-                // Suggested Users
-                const userContainer = document.getElementById('suggested-users');
-                if (userContainer) {
-                    userContainer.innerHTML = Object.values(AppState.users)
+                const userList = document.getElementById('suggested-users');
+                if (userList) {
+                    userList.innerHTML = Object.values(AppState.users)
                         .filter(u => u.id !== 'u_me' && !AppState.currentUser.followedUsers.has(u.id))
                         .slice(0, 3).map(u => `
                             <div class="flex justify-between items-center">
@@ -463,21 +461,15 @@
                 }
             },
 
-            // --- INTERACTIONS ---
+            // --- LOGIC HANDLERS ---
             bindComposer() {
                 const btn = document.getElementById('btn-publish');
-                if (btn) {
-                    btn.onclick = () => this.handlePublish();
-                }
+                if (btn) btn.onclick = () => this.handlePublish();
             },
 
             focusComposer() {
-                if (AppState.currentView === 'home') {
-                    this.navigate('home');
-                    setTimeout(() => document.getElementById('note-input').focus(), 100);
-                } else {
-                    this.navigate('home');
-                }
+                this.navigate('home');
+                setTimeout(() => document.getElementById('note-input').focus(), 100);
             },
 
             async handlePublish() {
@@ -500,8 +492,6 @@
                     
                     const note = await ApiService.publish(content, visibility, finalNiche);
                     note.isAiClassified = isAi;
-                    
-                    document.getElementById('note-input').value = '';
                     this.showToast("✅ Publicado");
                     this.render();
                 } catch (e) {
@@ -522,7 +512,6 @@
                     note.likesCount++;
                 }
                 btn.classList.toggle('liked', !isLiked);
-                btn.querySelector('.icon').textContent = isLiked ? '🤍' : '❤️';
                 btn.innerHTML = `<span class="icon">${isLiked ? '🤍' : '❤️'}</span> ${note.likesCount}`;
             },
 
@@ -554,9 +543,9 @@
 
             handleEdit(id) {
                 const note = AppState.notes[id];
-                const newText = prompt("Edita tu nota:", note.content);
-                if (newText) {
-                    note.content = newText;
+                const text = prompt("Editar nota:", note.content);
+                if (text) {
+                    note.content = text;
                     this.showToast("✏️ Actualizada");
                     this.render();
                 }
@@ -584,7 +573,6 @@
                 const theme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
                 document.documentElement.setAttribute('data-theme', theme);
                 localStorage.setItem('theme', theme);
-                this.showToast(`Modo ${theme} activado`);
             },
 
             showToast(msg) {
@@ -608,8 +596,4 @@
             }
         };
 
-        // Boot
-        window.addEventListener('DOMContentLoaded', () => UI.init());
-    </script>
-</body>
-</html>
+        document.addEventListener('DOMContentLoaded', () => UI.init());
