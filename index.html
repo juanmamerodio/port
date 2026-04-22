@@ -3,867 +3,740 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Notebing Mobile</title>
+    <meta name="theme-color" content="#ffffff" id="meta-theme-color">
+    <title>Notebing - Premium Social Experience</title>
+    
+    <!-- Inter Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
         /* ==========================================================================
-           DESIGN SYSTEM & THEMING
+           1. DESIGN SYSTEM & THEMING (CSS Variables)
            ========================================================================== */
         :root {
-            --bg-base: #ffffff;
+            /* Light Theme */
+            --bg-base: #f0f2f5;
             --bg-surface: #ffffff;
             --bg-surface-hover: #f7f9f9;
             --bg-glass: rgba(255, 255, 255, 0.85);
-            --text-main: #0f1419;
-            --text-muted: #536471;
-            --primary: #6366f1; /* Indigo */
-            --primary-hover: #4f46e5;
-            --primary-light: rgba(99, 102, 241, 0.1);
-            --border: #eff3f4;
-            --danger: #f4212e;
-            --success: #00ba7c;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-            --shadow-lg: 0 8px 24px rgba(0,0,0,0.1);
+            
+            --text-primary: #0f1419;
+            --text-secondary: #536471;
+            --text-inverse: #ffffff;
+            
+            --accent-primary: #4f46e5; /* Indigo */
+            --accent-hover: #4338ca;
+            --accent-alpha: rgba(79, 70, 229, 0.1);
+            
+            --border-color: #eff3f4;
+            --danger-color: #f91880;
+            --danger-alpha: rgba(249, 24, 128, 0.1);
+            --success-color: #00ba7c;
+            --success-alpha: rgba(0, 186, 124, 0.1);
+            
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            
             --radius-sm: 8px;
             --radius-md: 16px;
             --radius-lg: 24px;
             --radius-full: 9999px;
-            --nav-height: 60px;
-            --header-height: 56px;
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-        }[data-theme="dark"] {
-            --bg-base: #000000;
-            --bg-surface: #000000;
-            --bg-surface-hover: #16181c;
-            --bg-glass: rgba(0, 0, 0, 0.85);
-            --text-main: #e7e9ea;
-            --text-muted: #71767b;
-            --border: #2f3336;
-            --shadow-sm: 0 1px 3px rgba(255,255,255,0.02);
-            --shadow-lg: 0 8px 24px rgba(255,255,255,0.05);
+            
+            --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        [data-theme="dark"] {
+            /* Dark Theme */
+            --bg-base: #000000;
+            --bg-surface: #16181c;
+            --bg-surface-hover: #1d1f23;
+            --bg-glass: rgba(22, 24, 28, 0.85);
+            
+            --text-primary: #e7e9ea;
+            --text-secondary: #71767b;
+            --text-inverse: #ffffff;
+            
+            --border-color: #2f3336;
+            --shadow-sm: 0 1px 2px rgba(255,255,255,0.02);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        /* ==========================================================================
+           2. RESET & BASE
+           ========================================================================== */
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #e5e7eb; /* Desktop background */
-            display: flex;
-            justify-content: center;
-            height: 100vh;
-            overflow: hidden;
-            color: var(--text-main);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            line-height: 1.5;
+            transition: background-color var(--transition-smooth), color var(--transition-smooth);
+            overflow-y: scroll;
         }
 
-        /* Mobile Container Simulation */
-        #app {
-            width: 100%;
-            max-width: 480px;
-            height: 100%;
-            background-color: var(--bg-base);
-            position: relative;
+        button, input, select, textarea { font-family: inherit; border: none; background: none; outline: none; }
+        button { cursor: pointer; transition: transform var(--transition-fast), background-color var(--transition-fast); }
+        button:active { transform: scale(0.95); } /* Microinteraction: Tactile feedback */
+        
+        a { color: var(--accent-primary); text-decoration: none; }
+
+        /* ==========================================================================
+           3. LAYOUT (Mobile First -> Desktop)
+           ========================================================================== */
+        .app-container {
             display: flex;
             flex-direction: column;
-            box-shadow: 0 0 40px rgba(0,0,0,0.1);
-            overflow: hidden;
+            min-height: 100vh;
+            max-width: 1280px;
+            margin: 0 auto;
         }
 
-        button { background: none; border: none; cursor: pointer; font-family: inherit; color: inherit; }
-        input, textarea { font-family: inherit; outline: none; border: none; background: none; color: inherit; }
-        mark { background-color: rgba(99, 102, 241, 0.3); color: inherit; border-radius: 2px; padding: 0 2px; }
+        .main-content {
+            flex: 1;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding-bottom: 80px; /* Space for mobile bottom nav */
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            background-color: var(--bg-surface);
+            min-height: 100vh;
+        }
+
+        .sidebar-left, .sidebar-right { display: none; } /* Hidden on mobile */
 
         /* ==========================================================================
-           LAYOUT COMPONENTS
+           4. COMPONENTS
            ========================================================================== */
-        /* Header */
-        header {
-            height: var(--header-height);
-            padding: 0 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--bg-glass);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            z-index: 40;
-            border-bottom: 1px solid var(--border);
-            transition: transform 0.3s ease;
-        }
-        .header-title { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
-        .header-actions { display: flex; gap: 12px; align-items: center; }
-        .icon-btn { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: background 0.2s; }
-        .icon-btn:active { background: var(--bg-surface-hover); transform: scale(0.95); }
-
-        /* Search Bar (Hidden by default) */
-        .search-container {
-            position: absolute; top: 0; left: 0; right: 0; height: var(--header-height);
-            background: var(--bg-base); display: flex; align-items: center; padding: 0 16px; gap: 12px;
-            transform: translateY(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 50;
-        }
-        .search-container.active { transform: translateY(0); }
-        .search-input-wrapper { flex: 1; background: var(--bg-surface-hover); border-radius: var(--radius-full); display: flex; align-items: center; padding: 0 12px; height: 36px; border: 1px solid var(--border); }
-        .search-input-wrapper input { flex: 1; margin-left: 8px; font-size: 15px; }
-
-        /* Main Scroll Area */
-        main {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-top: var(--header-height);
-            padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 80px); /* Extra space for FAB */
-            scroll-behavior: smooth;
-        }
-        main::-webkit-scrollbar { display: none; }
-
-        /* Pull to Refresh */
-        .ptr-indicator {
-            height: 50px; display: flex; align-items: center; justify-content: center;
-            color: var(--text-muted); font-size: 20px; margin-top: -50px; transition: transform 0.2s;
-        }
-
-        /* Bottom Navigation */
-        .bottom-nav {
-            position: absolute; bottom: 0; left: 0; right: 0;
-            height: calc(var(--nav-height) + var(--safe-bottom));
-            padding-bottom: var(--safe-bottom);
+        
+        /* Top App Bar */
+        .top-bar {
+            position: sticky; top: 0; z-index: 50;
             background: var(--bg-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 40;
+            padding: 16px; border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+            transition: background-color var(--transition-smooth);
+        }
+        .top-bar h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+        .top-bar-actions { display: flex; gap: 12px; align-items: center; }
+        
+        .icon-btn {
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; color: var(--text-primary);
+            background: transparent; transition: var(--transition-fast);
+        }
+        .icon-btn:hover { background: var(--bg-surface-hover); }
+
+        /* Mobile Bottom Nav */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%; z-index: 50;
+            background: var(--bg-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border-color);
+            display: flex; justify-content: space-around; padding: 12px 8px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
         }
         .nav-item {
-            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100%; color: var(--text-muted); transition: color 0.2s; position: relative;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            color: var(--text-secondary); font-size: 10px; font-weight: 600;
+            padding: 8px 16px; border-radius: var(--radius-md);
         }
-        .nav-item.active { color: var(--text-main); }
-        .nav-item .icon { font-size: 22px; margin-bottom: 2px; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .nav-item.active .icon { transform: scale(1.15); }
-        .nav-item .label { font-size: 10px; font-weight: 600; }
-        .nav-item.active::after { content: ''; position: absolute; top: 0; width: 24px; height: 3px; background: var(--primary); border-radius: 0 0 4px 4px; }
+        .nav-item .icon { font-size: 24px; transition: transform var(--transition-fast); }
+        .nav-item.active { color: var(--text-primary); }
+        .nav-item.active .icon { transform: scale(1.1); }
 
-        /* FAB */
-        .fab {
-            position: absolute; bottom: calc(var(--nav-height) + var(--safe-bottom) + 16px); right: 16px;
-            width: 56px; height: 56px; border-radius: 50%; background: var(--primary); color: white;
-            display: flex; align-items: center; justify-content: center; font-size: 24px;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); z-index: 30; transition: transform 0.2s, box-shadow 0.2s;
+        /* Composer */
+        .composer { padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; gap: 12px; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+        .composer-body { flex: 1; }
+        .composer textarea {
+            width: 100%; font-size: 18px; color: var(--text-primary);
+            resize: none; min-height: 60px; padding-top: 8px;
         }
-        .fab:active { transform: scale(0.9); box-shadow: 0 2px 6px rgba(99, 102, 241, 0.4); }
+        .composer textarea::placeholder { color: var(--text-secondary); }
+        .composer-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 12px; }
+        .select-group { display: flex; gap: 8px; }
+        .pill-select {
+            padding: 6px 12px; border-radius: var(--radius-full); font-size: 13px; font-weight: 600;
+            background: var(--bg-base); color: var(--accent-primary); border: 1px solid var(--border-color);
+            cursor: pointer; appearance: none;
+        }
+        .btn-primary {
+            background: var(--accent-primary); color: var(--text-inverse);
+            padding: 8px 20px; border-radius: var(--radius-full); font-weight: 700; font-size: 15px;
+        }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* ==========================================================================
-           UI COMPONENTS (Cards, Modals, Skeletons)
-           ========================================================================== */
-        /* Note Card */
+        /* Feed & Note Cards */
+        .feed-container { display: flex; flex-direction: column; }
         .note-card {
-            padding: 16px; border-bottom: 1px solid var(--border); background: var(--bg-surface);
-            transition: background 0.2s; animation: fadeIn 0.3s ease;
+            padding: 16px; border-bottom: 1px solid var(--border-color);
+            transition: background-color var(--transition-fast);
+            animation: fadeIn 0.4s ease forwards;
         }
-        .note-card:active { background: var(--bg-surface-hover); }
-        .note-header { display: flex; align-items: center; margin-bottom: 8px; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--border); object-fit: cover; margin-right: 12px; }
-        .user-meta { flex: 1; display: flex; flex-direction: column; }
-        .user-name { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 4px; }
-        .user-handle { color: var(--text-muted); font-size: 14px; }
-        .note-time { color: var(--text-muted); font-size: 13px; margin-left: auto; }
+        .note-card:hover { background-color: var(--bg-surface-hover); }
         
-        .note-content { font-size: 15px; line-height: 1.5; margin-bottom: 12px; word-wrap: break-word; white-space: pre-wrap; }
+        .note-header { display: flex; gap: 12px; margin-bottom: 4px; }
+        .note-meta { display: flex; flex-direction: column; justify-content: center; }
+        .note-author { font-weight: 700; font-size: 15px; color: var(--text-primary); display: flex; align-items: center; gap: 4px; }
+        .note-handle { color: var(--text-secondary); font-weight: 400; font-size: 14px; }
         
-        .note-badges { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-        .badge { padding: 4px 10px; border-radius: var(--radius-full); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
-        .badge-niche { background: var(--primary-light); color: var(--primary); }
-        .badge-private { background: rgba(244, 33, 46, 0.1); color: var(--danger); }
-
-        .note-actions { display: flex; justify-content: space-between; max-width: 300px; color: var(--text-muted); }
-        .action-btn { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; transition: color 0.2s; padding: 4px; margin: -4px; }
-        .action-btn.liked { color: var(--danger); }
-        .action-btn.liked .icon { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .action-btn.saved { color: var(--success); }
-        .action-btn.saved .icon { animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-
-        /* Bottom Sheet (Create Note) */
-        .bottom-sheet-overlay {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5);
-            z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        .note-content { font-size: 15px; line-height: 1.5; margin-left: 52px; margin-bottom: 12px; white-space: pre-wrap; word-break: break-word; }
+        
+        .badges-container { margin-left: 52px; margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .badge {
+            display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600;
+            padding: 4px 10px; border-radius: var(--radius-full);
         }
-        .bottom-sheet-overlay.active { opacity: 1; pointer-events: auto; }
-        .bottom-sheet {
-            position: absolute; bottom: 0; left: 0; right: 0; background: var(--bg-surface);
-            border-radius: 24px 24px 0 0; padding: 20px; padding-bottom: calc(20px + var(--safe-bottom));
-            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 101;
-            display: flex; flex-direction: column; max-height: 90vh;
+        .badge-ai { background: var(--accent-alpha); color: var(--accent-primary); }
+        .badge-niche { background: var(--bg-base); color: var(--text-secondary); border: 1px solid var(--border-color); }
+        .badge-private { background: rgba(255, 159, 10, 0.1); color: #ff9f0a; }
+
+        .note-actions { margin-left: 52px; display: flex; justify-content: space-between; max-width: 400px; }
+        .action-btn {
+            display: flex; align-items: center; gap: 6px; color: var(--text-secondary);
+            font-size: 13px; font-weight: 500; padding: 8px; border-radius: var(--radius-full);
         }
-        .bottom-sheet.active { transform: translateY(0); }
-        .sheet-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
-        .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .sheet-title { font-weight: 700; font-size: 18px; }
-        .btn-publish { background: var(--primary); color: white; padding: 8px 16px; border-radius: var(--radius-full); font-weight: 600; font-size: 14px; transition: opacity 0.2s; }
-        .btn-publish:disabled { opacity: 0.5; }
+        .action-btn:hover { background: var(--bg-base); }
         
-        .compose-area { display: flex; gap: 12px; margin-bottom: 16px; }
-        .compose-input { flex: 1; font-size: 18px; resize: none; min-height: 100px; line-height: 1.4; }
-        .compose-input::placeholder { color: var(--text-muted); }
+        /* Interaction States */
+        .action-btn.liked { color: var(--danger-color); }
+        .action-btn.liked:hover { background: var(--danger-alpha); }
+        .action-btn.saved { color: var(--success-color); }
+        .action-btn.saved:hover { background: var(--success-alpha); }
         
-        .compose-options { border-top: 1px solid var(--border); padding-top: 16px; display: flex; flex-direction: column; gap: 16px; }
-        .option-group { display: flex; flex-direction: column; gap: 8px; }
-        .option-label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
-        .chips-container { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
-        .chips-container::-webkit-scrollbar { display: none; }
-        .chip { padding: 6px 12px; border-radius: var(--radius-full); border: 1px solid var(--border); font-size: 13px; font-weight: 500; white-space: nowrap; transition: all 0.2s; }
-        .chip.selected { background: var(--primary); color: white; border-color: var(--primary); }
+        /* Heart Animation */
+        @keyframes heartBurst { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        .action-btn.liked .icon { animation: heartBurst 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        /* Skeletons & Loading */
+        .skeleton {
+            background: linear-gradient(90deg, var(--bg-base) 25%, var(--border-color) 50%, var(--bg-base) 75%);
+            background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: var(--radius-sm);
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         
-        .toggle-container { display: flex; align-items: center; justify-content: space-between; }
-        .toggle-switch { width: 44px; height: 24px; background: var(--border); border-radius: 12px; position: relative; transition: background 0.3s; }
-        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: transform 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .toggle-switch.active { background: var(--primary); }
-        .toggle-switch.active::after { transform: translateX(20px); }
+        .skeleton-card { padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; gap: 12px; }
+        .sk-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; }
+        .sk-body { flex: 1; display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+        .sk-line { height: 12px; width: 100%; }
+        .sk-line.short { width: 40%; }
 
-        .char-counter { text-align: right; font-size: 12px; color: var(--text-muted); margin-top: -8px; }
-        .char-counter.limit { color: var(--danger); }
-
-        /* Niches Grid */
-        .niches-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px; }
-        .niche-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; transition: transform 0.2s; }
-        .niche-card:active { transform: scale(0.98); }
-        .niche-icon { font-size: 32px; }
-        .niche-name { font-weight: 700; font-size: 15px; }
-        .niche-stats { font-size: 12px; color: var(--text-muted); }
-        .btn-follow { margin-top: 8px; padding: 6px 16px; border-radius: var(--radius-full); font-size: 13px; font-weight: 600; border: 1px solid var(--border); transition: all 0.2s; width: 100%; }
-        .btn-follow.following { background: var(--text-main); color: var(--bg-base); border-color: var(--text-main); }
-
-        /* Profile */
-        .profile-header { padding: 20px 16px; border-bottom: 1px solid var(--border); }
-        .profile-info { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
-        .profile-avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; }
-        .profile-stats { display: flex; gap: 16px; margin-top: 12px; }
-        .stat { display: flex; flex-direction: column; }
-        .stat-val { font-weight: 700; font-size: 16px; }
-        .stat-label { font-size: 13px; color: var(--text-muted); }
-        
-        .tabs { display: flex; border-bottom: 1px solid var(--border); }
-        .tab { flex: 1; text-align: center; padding: 12px 0; font-weight: 600; font-size: 14px; color: var(--text-muted); position: relative; transition: color 0.2s; }
-        .tab.active { color: var(--text-main); }
-        .tab.active::after { content: ''; position: absolute; bottom: 0; left: 20%; right: 20%; height: 3px; background: var(--primary); border-radius: 3px 3px 0 0; }
-
-        /* Empty State */
-        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; color: var(--text-muted); }
-        .empty-icon { font-size: 48px; margin-bottom: 16px; }
-        .empty-title { font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
-        .empty-desc { font-size: 14px; line-height: 1.5; }
-
-        /* Skeleton Loading */
-        .skeleton { background: linear-gradient(90deg, var(--border) 25%, var(--bg-surface-hover) 50%, var(--border) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 4px; }
-        .sk-avatar { width: 40px; height: 40px; border-radius: 50%; }
-        .sk-text { height: 12px; margin-bottom: 8px; width: 100%; }
-        .sk-text.short { width: 40%; }
+        /* Empty States */
+        .empty-state {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 60px 20px; text-align: center; color: var(--text-secondary);
+        }
+        .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.8; }
+        .empty-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+        .empty-desc { font-size: 15px; max-width: 300px; }
 
         /* Toast */
-        .toast { position: absolute; bottom: calc(var(--nav-height) + var(--safe-bottom) + 80px); left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text-main); color: var(--bg-base); padding: 10px 20px; border-radius: var(--radius-full); font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 200; box-shadow: var(--shadow-lg); }
+        .toast {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: var(--accent-primary); color: white; padding: 12px 24px;
+            border-radius: var(--radius-full); font-weight: 600; font-size: 14px;
+            box-shadow: var(--shadow-md); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000; opacity: 0; pointer-events: none;
+        }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-        /* Animations */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
-        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--text-muted); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
 
+        /* ==========================================================================
+           5. RESPONSIVE (Tablet & Desktop)
+           ========================================================================== */
+        @media (min-width: 768px) {
+            .app-container { flex-direction: row; justify-content: center; padding: 0 20px; }
+            .bottom-nav { display: none; }
+            .main-content { padding-bottom: 0; margin: 0; }
+            
+            .sidebar-left {
+                display: flex; flex-direction: column; width: 260px; padding: 20px;
+                position: sticky; top: 0; height: 100vh;
+            }
+            .logo-desktop { font-size: 28px; font-weight: 800; color: var(--text-primary); margin-bottom: 32px; padding-left: 12px; }
+            .logo-desktop span { color: var(--accent-primary); }
+            
+            .nav-desktop { display: flex; flex-direction: column; gap: 8px; }
+            .nav-item-desktop {
+                display: flex; align-items: center; gap: 16px; padding: 12px 20px;
+                font-size: 20px; font-weight: 600; color: var(--text-primary);
+                border-radius: var(--radius-full); transition: var(--transition-fast);
+            }
+            .nav-item-desktop:hover { background: var(--bg-surface-hover); }
+            .nav-item-desktop.active { font-weight: 800; }
+            .nav-item-desktop .icon { font-size: 26px; }
+            
+            .btn-compose-desktop {
+                margin-top: 24px; background: var(--accent-primary); color: white;
+                padding: 16px; border-radius: var(--radius-full); font-size: 18px; font-weight: 700;
+                box-shadow: var(--shadow-md); width: 100%;
+            }
+            .btn-compose-desktop:hover { background: var(--accent-hover); }
+
+            .sidebar-right {
+                display: flex; flex-direction: column; width: 320px; padding: 20px;
+                position: sticky; top: 0; height: 100vh; gap: 20px;
+            }
+            .widget {
+                background: var(--bg-surface); border-radius: var(--radius-md);
+                border: 1px solid var(--border-color); padding: 16px;
+            }
+            .widget h3 { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
+            .trend-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+            .trend-item:last-child { border-bottom: none; padding-bottom: 0; }
+            .trend-info span { display: block; font-size: 13px; color: var(--text-secondary); }
+            .trend-info strong { font-size: 15px; }
+            
+            .toast { bottom: 40px; }
+        }
     </style>
 </head>
 <body>
 
-<div id="app">
-    <!-- Header -->
-    <header id="main-header">
-        <div class="header-title" id="header-title">Inicio</div>
-        <div class="header-actions">
-            <button class="icon-btn" id="btn-theme">🌓</button>
-            <button class="icon-btn" id="btn-search">🔍</button>
-        </div>
-    </header>
-
-    <!-- Search Overlay -->
-    <div class="search-container" id="search-container">
-        <button class="icon-btn" id="btn-close-search">⬅️</button>
-        <div class="search-input-wrapper">
-            <span style="font-size: 14px;">🔍</span>
-            <input type="text" id="search-input" placeholder="Buscar notas, usuarios, nichos...">
-        </div>
-    </div>
-
-    <!-- Main Content Area -->
-    <main id="main-scroll">
-        <div class="ptr-indicator" id="ptr-indicator">↓ Tira para actualizar</div>
-        <div id="view-container">
-            <!-- Content injected by JS -->
-        </div>
-        <div id="loading-more" style="display:none; text-align:center; padding: 20px;"><div class="spinner"></div></div>
-    </main>
-
-    <!-- Floating Action Button -->
-    <button class="fab" id="fab-compose">✍️</button>
-
-    <!-- Bottom Navigation -->
-    <nav class="bottom-nav">
-        <button class="nav-item active" data-tab="home">
-            <div class="icon">🏠</div>
-            <div class="label">Inicio</div>
-        </button>
-        <button class="nav-item" data-tab="niches">
-            <div class="icon">🎯</div>
-            <div class="label">Nichos</div>
-        </button>
-        <button class="nav-item" data-tab="saved">
-            <div class="icon">🧠</div>
-            <div class="label">Cerebro</div>
-        </button>
-        <button class="nav-item" data-tab="profile">
-            <div class="icon">👤</div>
-            <div class="label">Perfil</div>
-        </button>
-    </nav>
-
-    <!-- Compose Bottom Sheet -->
-    <div class="bottom-sheet-overlay" id="compose-overlay"></div>
-    <div class="bottom-sheet" id="compose-sheet">
-        <div class="sheet-handle"></div>
-        <div class="sheet-header">
-            <button id="btn-cancel-compose" style="font-weight: 600; color: var(--text-muted);">Cancelar</button>
-            <button class="btn-publish" id="btn-publish" disabled>Publicar</button>
-        </div>
-        <div class="compose-area">
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=You" class="avatar" alt="You">
-            <textarea class="compose-input" id="compose-input" placeholder="¿Qué estás pensando o aprendiendo?" maxlength="280"></textarea>
-        </div>
-        <div class="char-counter" id="char-counter">0 / 280</div>
+    <div class="app-container">
         
-        <div class="compose-options">
-            <div class="option-group">
-                <span class="option-label">Selecciona un Nicho (Opcional)</span>
-                <div class="chips-container" id="niche-chips">
-                    <!-- Chips injected by JS -->
+        <!-- DESKTOP LEFT SIDEBAR -->
+        <aside class="sidebar-left">
+            <div class="logo-desktop">Note<span>bing</span>.</div>
+            <nav class="nav-desktop">
+                <a href="#" class="nav-item-desktop active" data-view="home">
+                    <span class="icon">🏠</span> <span>Inicio</span>
+                </a>
+                <a href="#" class="nav-item-desktop" data-view="niches">
+                    <span class="icon">🎯</span> <span>Nichos</span>
+                </a>
+                <a href="#" class="nav-item-desktop" data-view="brain">
+                    <span class="icon">🧠</span> <span>Cerebro</span>
+                </a>
+                <a href="#" class="nav-item-desktop" data-view="profile">
+                    <span class="icon">👤</span> <span>Perfil</span>
+                </a>
+            </nav>
+            <button class="btn-compose-desktop" onclick="document.getElementById('note-input').focus()">Postear</button>
+        </aside>
+
+        <!-- MAIN FEED -->
+        <main class="main-content">
+            <!-- Top App Bar -->
+            <header class="top-bar">
+                <div class="avatar" style="width: 32px; height: 32px; font-size: 14px;">T</div>
+                <h1 id="view-title">Inicio</h1>
+                <div class="top-bar-actions">
+                    <button class="icon-btn" id="theme-toggle" aria-label="Toggle Theme">🌗</button>
                 </div>
-            </div>
-            <div class="option-group">
-                <div class="toggle-container">
-                    <div>
-                        <div style="font-weight: 600; font-size: 15px;">Nota Privada</div>
-                        <div style="font-size: 12px; color: var(--text-muted);">Guardar solo en tu Segundo Cerebro</div>
+            </header>
+
+            <!-- Composer -->
+            <div class="composer" id="composer-section">
+                <div class="avatar">T</div>
+                <div class="composer-body">
+                    <textarea id="note-input" placeholder="¿Qué estás pensando o aprendiendo?"></textarea>
+                    <div class="composer-actions">
+                        <div class="select-group">
+                            <select class="pill-select" id="note-visibility">
+                                <option value="PUBLIC">🌍 Público</option>
+                                <option value="NICHE">🎯 Solo Nicho</option>
+                                <option value="PRIVATE">🔒 Privado</option>
+                            </select>
+                            <select class="pill-select" id="note-niche">
+                                <option value="">✨ IA Auto</option>
+                                <option value="tech">💻 Tech</option>
+                                <option value="startups">🚀 Startups</option>
+                                <option value="design">🎨 Diseño</option>
+                            </select>
+                        </div>
+                        <button class="btn-primary" id="btn-publish">Postear</button>
                     </div>
-                    <button class="toggle-switch" id="toggle-private"></button>
                 </div>
             </div>
-        </div>
+
+            <!-- Feed Container -->
+            <div id="feed-container" class="feed-container">
+                <!-- Content injected via JS -->
+            </div>
+        </main>
+
+        <!-- DESKTOP RIGHT SIDEBAR -->
+        <aside class="sidebar-right">
+            <div class="widget">
+                <h3>Nichos en Tendencia</h3>
+                <div class="trend-item">
+                    <div class="trend-info"><span>1 · Tecnología</span><strong>#AI</strong><span>12.5k notas</span></div>
+                </div>
+                <div class="trend-item">
+                    <div class="trend-info"><span>2 · Startups</span><strong>#BuildInPublic</strong><span>8.2k notas</span></div>
+                </div>
+                <div class="trend-item">
+                    <div class="trend-info"><span>3 · Diseño</span><strong>#UXUI</strong><span>5.1k notas</span></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MOBILE BOTTOM NAV -->
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active" data-view="home">
+                <span class="icon">🏠</span><span>Inicio</span>
+            </a>
+            <a href="#" class="nav-item" data-view="niches">
+                <span class="icon">🎯</span><span>Nichos</span>
+            </a>
+            <a href="#" class="nav-item" data-view="brain">
+                <span class="icon">🧠</span><span>Cerebro</span>
+            </a>
+            <a href="#" class="nav-item" data-view="profile">
+                <span class="icon">👤</span><span>Perfil</span>
+            </a>
+        </nav>
+
     </div>
 
-    <!-- Toast -->
+    <!-- Toast Notification -->
     <div class="toast" id="toast">Notificación</div>
-</div>
 
-<script>
-/**
- * NOTEBING MOBILE - CORE LOGIC
- * Architecture: State-driven UI (Vanilla JS)
- */
+    <script>
+        /**
+         * NOTEBING - High Performance Mobile-First Prototype
+         * Architecture: Vanilla JS with Optimistic UI Updates & State Management
+         */
 
-// ==========================================================================
-// 1. STATE & MOCK DATA
-// ==========================================================================
-const MOCK_NICHES =[
-    { id: 'tech', name: 'Tecnología', icon: '💻', followers: '12.4k' },
-    { id: 'startups', name: 'Startups', icon: '🚀', followers: '8.2k' },
-    { id: 'ai', name: 'Inteligencia Artificial', icon: '🤖', followers: '24.1k' },
-    { id: 'design', name: 'UX/UI Design', icon: '🎨', followers: '5.6k' },
-    { id: 'crypto', name: 'Crypto & Web3', icon: '⛓️', followers: '10.2k' },
-    { id: 'philosophy', name: 'Filosofía', icon: '🤔', followers: '3.1k' }
-];
+        // --- 1. HAPTICS & MULTIMODAL ---
+        const Haptics = {
+            light() { if (navigator.vibrate) navigator.vibrate(10); },
+            medium() { if (navigator.vibrate) navigator.vibrate(30); },
+            heavy() { if (navigator.vibrate) navigator.vibrate([30, 50, 30]); }
+        };
 
-const MOCK_USERS = {
-    u1: { id: 'u1', name: 'Sarah Dev', handle: 'sarah_codes', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah' },
-    u2: { id: 'u2', name: 'Alex Founder', handle: 'alex_builds', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex' },
-    u3: { id: 'u3', name: 'AI Researcher', handle: 'deep_learning', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=AI' },
-    me: { id: 'me', name: 'Tú', handle: 'tu_usuario', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=You' }
-};
-
-const State = {
-    tab: 'home',
-    theme: localStorage.getItem('theme') || 'light',
-    searchQuery: '',
-    isSearching: false,
-    profileTab: 'notes', // 'notes' or 'saved'
-    user: { ...MOCK_USERS.me, followingNiches: ['tech', 'ai'], stats: { followers: 142, following: 89 } },
-    
-    // AI Simulation: Tracks user affinities based on likes/saves
-    affinities: { tech: 5, startups: 2, ai: 10, design: 0, crypto: 0, philosophy: 0 },
-    
-    notes:[
-        { id: 'n1', author: MOCK_USERS.u3, content: 'El nuevo modelo de lenguaje es increíble. La capacidad de razonamiento zero-shot ha mejorado un 40%. El futuro es multimodal.', niche: 'ai', visibility: 'public', likes: 342, isLiked: false, isSaved: false, timestamp: Date.now() - 3600000 },
-        { id: 'n2', author: MOCK_USERS.u1, content: 'Acabo de implementar Clean Architecture en mi app. Separar la capa de dominio hace que los tests unitarios sean un paseo por el parque. 🚀', niche: 'tech', visibility: 'public', likes: 128, isLiked: true, isSaved: true, timestamp: Date.now() - 7200000 },
-        { id: 'n3', author: MOCK_USERS.u2, content: 'El mayor error al crear un MVP es enamorarse de la solución y no del problema. Lanza rápido, equivócate rápido, itera más rápido.', niche: 'startups', visibility: 'public', likes: 89, isLiked: false, isSaved: false, timestamp: Date.now() - 14400000 },
-        { id: 'n4', author: MOCK_USERS.me, content: 'Idea para proyecto: Un híbrido entre Twitter y Reddit enfocado en nichos. Llamarlo Notebing.', niche: 'design', visibility: 'private', likes: 0, isLiked: false, isSaved: true, timestamp: Date.now() - 86400000 }
-    ],
-    
-    compose: { content: '', niche: null, isPrivate: false }
-};
-
-// ==========================================================================
-// 2. DOM ELEMENTS & EVENT LISTENERS
-// ==========================================================================
-const DOM = {
-    app: document.getElementById('app'),
-    headerTitle: document.getElementById('header-title'),
-    viewContainer: document.getElementById('view-container'),
-    navItems: document.querySelectorAll('.nav-item'),
-    fab: document.getElementById('fab-compose'),
-    
-    // Search
-    btnSearch: document.getElementById('btn-search'),
-    searchContainer: document.getElementById('search-container'),
-    btnCloseSearch: document.getElementById('btn-close-search'),
-    searchInput: document.getElementById('search-input'),
-    
-    // Compose Sheet
-    composeOverlay: document.getElementById('compose-overlay'),
-    composeSheet: document.getElementById('compose-sheet'),
-    btnCancelCompose: document.getElementById('btn-cancel-compose'),
-    btnPublish: document.getElementById('btn-publish'),
-    composeInput: document.getElementById('compose-input'),
-    charCounter: document.getElementById('char-counter'),
-    nicheChips: document.getElementById('niche-chips'),
-    togglePrivate: document.getElementById('toggle-private'),
-    
-    // Theme & Toast
-    btnTheme: document.getElementById('btn-theme'),
-    toast: document.getElementById('toast'),
-    mainScroll: document.getElementById('main-scroll'),
-    ptrIndicator: document.getElementById('ptr-indicator')
-};
-
-function initEvents() {
-    // Navigation
-    DOM.navItems.forEach(btn => {
-        btn.addEventListener('click', () => {
-            if(State.isSearching) closeSearch();
-            setTab(btn.dataset.tab);
-        });
-    });
-
-    // Theme
-    DOM.btnTheme.addEventListener('click', toggleTheme);
-
-    // Search
-    DOM.btnSearch.addEventListener('click', openSearch);
-    DOM.btnCloseSearch.addEventListener('click', closeSearch);
-    DOM.searchInput.addEventListener('input', (e) => {
-        State.searchQuery = e.target.value.toLowerCase();
-        render();
-    });
-
-    // Compose
-    DOM.fab.addEventListener('click', openCompose);
-    DOM.btnCancelCompose.addEventListener('click', closeCompose);
-    DOM.composeOverlay.addEventListener('click', closeCompose);
-    DOM.composeInput.addEventListener('input', handleComposeInput);
-    DOM.togglePrivate.addEventListener('click', () => {
-        State.compose.isPrivate = !State.compose.isPrivate;
-        DOM.togglePrivate.classList.toggle('active', State.compose.isPrivate);
-    });
-    DOM.btnPublish.addEventListener('click', publishNote);
-
-    // Feed Interactions (Delegation)
-    DOM.viewContainer.addEventListener('click', handleViewClicks);
-
-    // Pull to Refresh Simulation
-    initPullToRefresh();
-}
-
-// ==========================================================================
-// 3. CORE LOGIC & ACTIONS
-// ==========================================================================
-function setTab(tab) {
-    State.tab = tab;
-    DOM.navItems.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
-    
-    const titles = { home: 'Inicio', niches: 'Explorar Nichos', saved: 'Segundo Cerebro', profile: 'Tu Perfil' };
-    DOM.headerTitle.textContent = titles[tab];
-    
-    // Show/Hide FAB
-    DOM.fab.style.transform = (tab === 'home' || tab === 'niches') ? 'scale(1)' : 'scale(0)';
-    
-    DOM.mainScroll.scrollTop = 0;
-    renderWithSkeleton();
-}
-
-function toggleTheme() {
-    State.theme = State.theme === 'light' ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', State.theme);
-    localStorage.setItem('theme', State.theme);
-}
-
-function openSearch() {
-    State.isSearching = true;
-    State.searchQuery = '';
-    DOM.searchInput.value = '';
-    DOM.searchContainer.classList.add('active');
-    DOM.searchInput.focus();
-    render();
-}
-
-function closeSearch() {
-    State.isSearching = false;
-    State.searchQuery = '';
-    DOM.searchContainer.classList.remove('active');
-    render();
-}
-
-// Compose Logic
-function openCompose() {
-    DOM.composeOverlay.classList.add('active');
-    DOM.composeSheet.classList.add('active');
-    DOM.composeInput.focus();
-    renderNicheChips();
-}
-
-function closeCompose() {
-    DOM.composeOverlay.classList.remove('active');
-    DOM.composeSheet.classList.remove('active');
-    State.compose = { content: '', niche: null, isPrivate: false };
-    DOM.composeInput.value = '';
-    DOM.togglePrivate.classList.remove('active');
-    handleComposeInput();
-}
-
-function handleComposeInput() {
-    const text = DOM.composeInput.value;
-    State.compose.content = text;
-    DOM.charCounter.textContent = `${text.length} / 280`;
-    DOM.charCounter.classList.toggle('limit', text.length > 260);
-    DOM.btnPublish.disabled = text.trim().length === 0 || text.length > 280;
-}
-
-function renderNicheChips() {
-    DOM.nicheChips.innerHTML = MOCK_NICHES.map(n => `
-        <button class="chip ${State.compose.niche === n.id ? 'selected' : ''}" data-id="${n.id}">
-            ${n.icon} ${n.name}
-        </button>
-    `).join('');
-    
-    DOM.nicheChips.querySelectorAll('.chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-            State.compose.niche = State.compose.niche === chip.dataset.id ? null : chip.dataset.id;
-            renderNicheChips();
-        });
-    });
-}
-
-function publishNote() {
-    const { content, niche, isPrivate } = State.compose;
-    if (!content.trim()) return;
-
-    // AI Auto-classification simulation if no niche selected and public
-    let finalNiche = niche;
-    let isAi = false;
-    if (!niche && !isPrivate) {
-        const lower = content.toLowerCase();
-        if (lower.includes('app') || lower.includes('código')) finalNiche = 'tech';
-        else if (lower.includes('ia') || lower.includes('modelo')) finalNiche = 'ai';
-        else finalNiche = 'philosophy';
-        isAi = true;
-    }
-
-    const newNote = {
-        id: 'n_' + Date.now(),
-        author: State.user,
-        content: content.trim(),
-        niche: finalNiche,
-        visibility: isPrivate ? 'private' : 'public',
-        likes: 0,
-        isLiked: false,
-        isSaved: isPrivate,
-        timestamp: Date.now(),
-        isAiClassified: isAi
-    };
-
-    State.notes.unshift(newNote);
-    closeCompose();
-    showToast(isPrivate ? '🧠 Guardado en tu Cerebro' : '✅ Nota publicada');
-    
-    if(State.tab === 'home' || (isPrivate && State.tab === 'saved')) render();
-}
-
-// Interactions
-function handleViewClicks(e) {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-
-    // Note Actions
-    if (btn.classList.contains('action-btn')) {
-        const noteId = btn.dataset.id;
-        const action = btn.dataset.action;
-        const note = State.notes.find(n => n.id === noteId);
-        if (!note) return;
-
-        if (action === 'like') {
-            note.isLiked = !note.isLiked;
-            note.likes += note.isLiked ? 1 : -1;
-            // AI Simulation: Increase affinity for this niche
-            if (note.isLiked && note.niche) State.affinities[note.niche] = (State.affinities[note.niche] || 0) + 1;
-            render();
-        }
-        if (action === 'save') {
-            note.isSaved = !note.isSaved;
-            showToast(note.isSaved ? '🧠 Guardado' : 'Removido');
-            render();
-        }
-        if (action === 'delete' && note.author.id === 'me') {
-            if(confirm('¿Eliminar esta nota?')) {
-                State.notes = State.notes.filter(n => n.id !== noteId);
-                render();
+        // --- 2. THEME MANAGER ---
+        const ThemeManager = {
+            init() {
+                this.toggleBtn = document.getElementById('theme-toggle');
+                this.metaThemeColor = document.getElementById('meta-theme-color');
+                
+                // Check local storage or system preference
+                const savedTheme = localStorage.getItem('theme');
+                const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                this.currentTheme = savedTheme || (systemDark ? 'dark' : 'light');
+                
+                this.applyTheme(this.currentTheme);
+                this.toggleBtn.addEventListener('click', () => {
+                    Haptics.light();
+                    this.currentTheme = this.currentTheme === 'light' ? 'dark' : 'light';
+                    this.applyTheme(this.currentTheme);
+                });
+            },
+            applyTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
+                this.toggleBtn.textContent = theme === 'light' ? '🌙' : '☀️';
+                this.metaThemeColor.content = theme === 'light' ? '#ffffff' : '#16181c';
             }
-        }
-    }
+        };
 
-    // Niche Follow
-    if (btn.classList.contains('btn-follow')) {
-        const nicheId = btn.dataset.id;
-        const idx = State.user.followingNiches.indexOf(nicheId);
-        if (idx > -1) State.user.followingNiches.splice(idx, 1);
-        else State.user.followingNiches.push(nicheId);
-        render();
-    }
+        // --- 3. STATE MANAGEMENT ---
+        const AppState = {
+            currentView: 'home',
+            currentUser: { id: 'u1', handle: 'tu_usuario', name: 'Tú', avatar: 'T' },
+            isPublishing: false,
+            notes:[
+                {
+                    id: 'n1',
+                    author: { name: 'Sarah Dev', handle: 'sarah_codes', avatar: 'S' },
+                    content: 'Acabo de implementar Clean Architecture en mi app. Separar la capa de dominio hace que los tests unitarios sean un paseo por el parque. 🚀',
+                    visibility: 'PUBLIC',
+                    niche: { id: 'tech', name: 'Tecnología', icon: '💻' },
+                    likes: 42, isLiked: false, isSaved: false, isAiClassified: false, timestamp: '2h'
+                },
+                {
+                    id: 'n2',
+                    author: { name: 'Startup Founder', handle: 'build_in_public', avatar: 'F' },
+                    content: 'El mayor error al crear un MVP es enamorarse de la solución y no del problema. Lanza rápido, equivócate rápido, itera más rápido.',
+                    visibility: 'PUBLIC',
+                    niche: { id: 'startups', name: 'Startups', icon: '🚀' },
+                    likes: 128, isLiked: true, isSaved: false, isAiClassified: true, timestamp: '5h'
+                }
+            ]
+        };
 
-    // Profile Tabs
-    if (btn.classList.contains('profile-tab')) {
-        State.profileTab = btn.dataset.ptab;
-        render();
-    }
-}
+        // --- 4. API SIMULATION (Delays & AI) ---
+        const ApiService = {
+            async publishNote(content, visibility, nicheId) {
+                return new Promise(resolve => setTimeout(() => {
+                    resolve({
+                        id: 'n_' + Date.now(),
+                        author: AppState.currentUser,
+                        content, visibility, likes: 0, isLiked: false, isSaved: visibility === 'PRIVATE',
+                        timestamp: 'Ahora'
+                    });
+                }, 800));
+            },
+            async classifyWithGemini(content) {
+                return new Promise(resolve => setTimeout(() => {
+                    const text = content.toLowerCase();
+                    if (text.includes('código') || text.includes('app') || text.includes('tech')) 
+                        resolve({ id: 'tech', name: 'Tecnología', icon: '💻' });
+                    else if (text.includes('negocio') || text.includes('mvp') || text.includes('startup')) 
+                        resolve({ id: 'startups', name: 'Startups', icon: '🚀' });
+                    else 
+                        resolve({ id: 'design', name: 'Diseño', icon: '🎨' });
+                }, 1500));
+            }
+        };
 
-function showToast(msg) {
-    DOM.toast.textContent = msg;
-    DOM.toast.classList.add('show');
-    setTimeout(() => DOM.toast.classList.remove('show'), 2500);
-}
+        // --- 5. UI CONTROLLER ---
+        const UI = {
+            init() {
+                ThemeManager.init();
+                this.cacheDOM();
+                this.bindEvents();
+                this.renderFeed();
+            },
 
-// Pull to Refresh
-function initPullToRefresh() {
-    let startY = 0;
-    let isPulling = false;
+            cacheDOM() {
+                this.feedContainer = document.getElementById('feed-container');
+                this.viewTitle = document.getElementById('view-title');
+                this.composerSection = document.getElementById('composer-section');
+                this.noteInput = document.getElementById('note-input');
+                this.btnPublish = document.getElementById('btn-publish');
+                this.navItems = document.querySelectorAll('.nav-item, .nav-item-desktop');
+                this.toast = document.getElementById('toast');
+            },
 
-    DOM.mainScroll.addEventListener('touchstart', e => {
-        if (DOM.mainScroll.scrollTop === 0) {
-            startY = e.touches[0].clientY;
-            isPulling = true;
-        }
-    }, {passive: true});
+            bindEvents() {
+                // Navigation
+                this.navItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        Haptics.light();
+                        const view = e.currentTarget.dataset.view;
+                        if (view && view !== 'profile') this.navigate(view);
+                    });
+                });
 
-    DOM.mainScroll.addEventListener('touchmove', e => {
-        if (!isPulling) return;
-        const y = e.touches[0].clientY;
-        const pullDist = y - startY;
-        if (pullDist > 0 && pullDist < 100) {
-            DOM.ptrIndicator.style.transform = `translateY(${pullDist}px)`;
-            DOM.ptrIndicator.textContent = pullDist > 60 ? '↓ Suelta para actualizar' : '↓ Tira para actualizar';
-        }
-    }, {passive: true});
+                // Publish
+                this.btnPublish.addEventListener('click', () => {
+                    Haptics.medium();
+                    this.handlePublish();
+                });
 
-    DOM.mainScroll.addEventListener('touchend', e => {
-        if (!isPulling) return;
-        isPulling = false;
-        DOM.ptrIndicator.style.transform = `translateY(0)`;
-        if (e.changedTouches[0].clientY - startY > 60) {
-            DOM.ptrIndicator.innerHTML = '<div class="spinner"></div>';
-            DOM.ptrIndicator.style.transform = `translateY(50px)`;
-            setTimeout(() => {
-                DOM.ptrIndicator.style.transform = `translateY(0)`;
-                renderWithSkeleton();
-            }, 1000);
-        }
-    });
-}
+                // Feed Interactions (Event Delegation for Performance)
+                this.feedContainer.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.action-btn');
+                    if (!btn) return;
+                    
+                    Haptics.light();
+                    const noteId = btn.dataset.id;
+                    if (btn.dataset.action === 'like') this.toggleLike(noteId, btn);
+                    if (btn.dataset.action === 'save') this.toggleSave(noteId, btn);
+                });
+            },
 
-// ==========================================================================
-// 4. RENDERING ENGINE
-// ==========================================================================
-function renderWithSkeleton() {
-    DOM.viewContainer.innerHTML = `
-        <div style="padding: 16px;">
-            ${[1,2,3].map(() => `
-                <div style="display:flex; gap:12px; margin-bottom: 24px;">
-                    <div class="skeleton sk-avatar"></div>
-                    <div style="flex:1">
-                        <div class="skeleton sk-text short"></div>
-                        <div class="skeleton sk-text"></div>
-                        <div class="skeleton sk-text"></div>
+            navigate(view) {
+                AppState.currentView = view;
+                
+                // Update Nav UI
+                this.navItems.forEach(item => item.classList.remove('active'));
+                document.querySelectorAll(`[data-view="${view}"]`).forEach(el => el.classList.add('active'));
+                
+                // Update Header & Composer
+                const titles = { 'home': 'Inicio', 'niches': 'Tus Nichos', 'brain': 'Segundo Cerebro' };
+                this.viewTitle.textContent = titles[view];
+                this.composerSection.style.display = view === 'brain' ? 'none' : 'flex';
+
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                this.renderFeed();
+            },
+
+            async handlePublish() {
+                const content = this.noteInput.value.trim();
+                if (!content || AppState.isPublishing) return;
+
+                const visibility = document.getElementById('note-visibility').value;
+                const nicheId = document.getElementById('note-niche').value;
+
+                this.setLoading(true);
+                this.renderSkeleton(); // Show skeleton at the top
+
+                try {
+                    let finalNiche = null;
+                    let isAiClassified = false;
+
+                    if (!nicheId && visibility !== 'PRIVATE') {
+                        this.showToast("✨ Gemini analizando contexto...");
+                        finalNiche = await ApiService.classifyWithGemini(content);
+                        isAiClassified = true;
+                    } else if (nicheId) {
+                        const select = document.getElementById('note-niche');
+                        finalNiche = { id: nicheId, name: select.options[select.selectedIndex].text.split(' ')[1], icon: '🏷️' };
+                    }
+
+                    const newNote = await ApiService.publishNote(content, visibility, nicheId);
+                    newNote.niche = finalNiche;
+                    newNote.isAiClassified = isAiClassified;
+
+                    AppState.notes.unshift(newNote);
+                    
+                    this.noteInput.value = '';
+                    document.getElementById('note-niche').value = '';
+                    
+                    Haptics.heavy();
+                    this.showToast("✅ Publicado");
+                    this.renderFeed(); // Re-render to show new note
+                } catch (error) {
+                    this.showToast("❌ Error al publicar");
+                    this.renderFeed(); // Remove skeleton
+                } finally {
+                    this.setLoading(false);
+                }
+            },
+
+            // Optimistic UI Update for Likes (Fast Interaction)
+            toggleLike(noteId, btnElement) {
+                const note = AppState.notes.find(n => n.id === noteId);
+                if (!note) return;
+
+                // Update State
+                note.isLiked = !note.isLiked;
+                note.likes += note.isLiked ? 1 : -1;
+
+                // Update DOM directly (Optimistic, no full re-render)
+                btnElement.classList.toggle('liked', note.isLiked);
+                btnElement.innerHTML = `<span class="icon">${note.isLiked ? '❤️' : '🤍'}</span> ${note.likes}`;
+            },
+
+            // Optimistic UI Update for Saves
+            toggleSave(noteId, btnElement) {
+                const note = AppState.notes.find(n => n.id === noteId);
+                if (!note) return;
+
+                note.isSaved = !note.isSaved;
+                btnElement.classList.toggle('saved', note.isSaved);
+                btnElement.innerHTML = `<span class="icon">🧠</span>`;
+                
+                this.showToast(note.isSaved ? "🧠 Guardado en Cerebro" : "Removido del Cerebro");
+                
+                // If we are in the brain view and unsave, remove the card
+                if (AppState.currentView === 'brain' && !note.isSaved) {
+                    btnElement.closest('.note-card').style.display = 'none';
+                    // Check if empty
+                    if (AppState.notes.filter(n => n.isSaved || n.visibility === 'PRIVATE').length === 0) {
+                        this.renderFeed();
+                    }
+                }
+            },
+
+            setLoading(isLoading) {
+                AppState.isPublishing = isLoading;
+                this.btnPublish.disabled = isLoading;
+                this.btnPublish.textContent = isLoading ? '...' : 'Postear';
+                this.noteInput.disabled = isLoading;
+            },
+
+            showToast(message) {
+                this.toast.textContent = message;
+                this.toast.classList.add('show');
+                setTimeout(() => this.toast.classList.remove('show'), 3000);
+            },
+
+            renderSkeleton() {
+                const skeletonHTML = `
+                    <div class="skeleton-card" id="temp-skeleton">
+                        <div class="sk-avatar skeleton"></div>
+                        <div class="sk-body">
+                            <div class="sk-line skeleton"></div>
+                            <div class="sk-line skeleton"></div>
+                            <div class="sk-line short skeleton"></div>
+                        </div>
                     </div>
-                </div>
-            `).join('')}
-        </div>
-    `;
-    setTimeout(render, 400);
-}
+                `;
+                this.feedContainer.insertAdjacentHTML('afterbegin', skeletonHTML);
+            },
 
-function render() {
-    let html = '';
-    
-    if (State.isSearching) {
-        html = renderFeed(getFilteredNotes(State.searchQuery));
-    } else {
-        switch (State.tab) {
-            case 'home': html = renderFeed(getSmartFeed()); break;
-            case 'niches': html = renderNichesView(); break;
-            case 'saved': html = renderFeed(State.notes.filter(n => n.isSaved)); break;
-            case 'profile': html = renderProfileView(); break;
-        }
-    }
-    
-    DOM.viewContainer.innerHTML = html;
-}
+            renderFeed() {
+                this.feedContainer.innerHTML = '';
+                
+                let filteredNotes = AppState.notes;
+                if (AppState.currentView === 'brain') {
+                    filteredNotes = AppState.notes.filter(n => n.visibility === 'PRIVATE' || n.isSaved);
+                } else if (AppState.currentView === 'niches') {
+                    filteredNotes = AppState.notes.filter(n => n.niche && n.visibility !== 'PRIVATE');
+                } else {
+                    filteredNotes = AppState.notes.filter(n => n.visibility !== 'PRIVATE');
+                }
 
-// AI Smart Feed: Sorts by timestamp + user affinity score
-function getSmartFeed() {
-    const publicNotes = State.notes.filter(n => n.visibility === 'public');
-    return publicNotes.sort((a, b) => {
-        const scoreA = (State.affinities[a.niche] || 0) * 100000 + a.timestamp;
-        const scoreB = (State.affinities[b.niche] || 0) * 100000 + b.timestamp;
-        return scoreB - scoreA;
-    });
-}
+                if (filteredNotes.length === 0) {
+                    this.renderEmptyState();
+                    return;
+                }
 
-function getFilteredNotes(query) {
-    if (!query) return[];
-    return State.notes.filter(n => 
-        n.content.toLowerCase().includes(query) || 
-        n.author.name.toLowerCase().includes(query) ||
-        (n.niche && MOCK_NICHES.find(ni => ni.id === n.niche)?.name.toLowerCase().includes(query))
-    );
-}
+                const fragment = document.createDocumentFragment();
 
-function highlightText(text, query) {
-    if (!query) return escapeHTML(text);
-    const regex = new RegExp(`(${query})`, 'gi');
-    return escapeHTML(text).replace(regex, '<mark>$1</mark>');
-}
+                filteredNotes.forEach(note => {
+                    const article = document.createElement('article');
+                    article.className = 'note-card';
+                    
+                    let badgesHTML = '';
+                    if (note.isAiClassified) badgesHTML += `<span class="badge badge-ai">✨ Gemini AI</span>`;
+                    if (note.niche && note.visibility !== 'PRIVATE') badgesHTML += `<span class="badge badge-niche">${note.niche.icon} ${note.niche.name}</span>`;
+                    if (note.visibility === 'PRIVATE') badgesHTML += `<span class="badge badge-private">🔒 Privado</span>`;
 
-function renderFeed(notesList) {
-    if (notesList.length === 0) {
-        return `
-            <div class="empty-state">
-                <div class="empty-icon">${State.isSearching ? '🔍' : (State.tab === 'saved' ? '🧠' : '📭')}</div>
-                <div class="empty-title">${State.isSearching ? 'Sin resultados' : 'Nada por aquí'}</div>
-                <div class="empty-desc">${State.isSearching ? 'Prueba con otras palabras clave.' : 'Las notas aparecerán aquí.'}</div>
-            </div>
-        `;
-    }
+                    article.innerHTML = `
+                        <div class="note-header">
+                            <div class="avatar" style="background: ${note.author.id === 'u1' ? 'var(--accent-primary)' : '#536471'}">${note.author.avatar}</div>
+                            <div class="note-meta">
+                                <div class="note-author">${note.author.name} <span class="note-handle">@${note.author.handle} · ${note.timestamp}</span></div>
+                            </div>
+                        </div>
+                        <div class="note-content">${this.escapeHTML(note.content)}</div>
+                        ${badgesHTML ? `<div class="badges-container">${badgesHTML}</div>` : ''}
+                        <div class="note-actions">
+                            <button class="action-btn ${note.isLiked ? 'liked' : ''}" data-action="like" data-id="${note.id}">
+                                <span class="icon">${note.isLiked ? '❤️' : '🤍'}</span> ${note.likes}
+                            </button>
+                            <button class="action-btn" data-action="renote">
+                                <span class="icon">🔄</span>
+                            </button>
+                            <button class="action-btn ${note.isSaved ? 'saved' : ''}" data-action="save" data-id="${note.id}">
+                                <span class="icon">🧠</span>
+                            </button>
+                        </div>
+                    `;
+                    fragment.appendChild(article);
+                });
 
-    return notesList.map(note => {
-        const nicheObj = MOCK_NICHES.find(n => n.id === note.niche);
-        const timeStr = getRelativeTime(note.timestamp);
-        const contentHtml = highlightText(note.content, State.searchQuery);
-        
-        let badges = '';
-        if (note.visibility === 'private') badges += `<div class="badge badge-private">🔒 Privado</div>`;
-        if (nicheObj) badges += `<div class="badge badge-niche">${nicheObj.icon} ${nicheObj.name}</div>`;
-        if (note.isAiClassified) badges += `<div class="badge" style="background: rgba(0,186,124,0.1); color: var(--success);">✨ IA</div>`;
+                this.feedContainer.appendChild(fragment);
+            },
 
-        return `
-            <article class="note-card">
-                <div class="note-header">
-                    <img src="${note.author.avatar}" class="avatar" alt="Avatar">
-                    <div class="user-meta">
-                        <div class="user-name">${highlightText(note.author.name, State.searchQuery)}</div>
-                        <div class="user-handle">@${note.author.handle}</div>
+            renderEmptyState() {
+                const states = {
+                    'home': { icon: '📭', title: 'Tu feed está vacío', desc: 'Sigue a otros usuarios o publica tu primera nota.' },
+                    'niches': { icon: '🎯', title: 'Sin nichos aún', desc: 'Explora temas y únete a las conversaciones que te importan.' },
+                    'brain': { icon: '🧠', title: 'Cerebro en blanco', desc: 'Guarda notas públicas o crea notas privadas para construir tu base de conocimiento.' }
+                };
+                const state = states[AppState.currentView];
+                
+                this.feedContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">${state.icon}</div>
+                        <div class="empty-title">${state.title}</div>
+                        <div class="empty-desc">${state.desc}</div>
                     </div>
-                    <div class="note-time">${timeStr}</div>
-                </div>
-                <div class="note-content">${contentHtml}</div>
-                ${badges ? `<div class="note-badges">${badges}</div>` : ''}
-                <div class="note-actions">
-                    <button class="action-btn ${note.isLiked ? 'liked' : ''}" data-action="like" data-id="${note.id}">
-                        <span class="icon">${note.isLiked ? '❤️' : '🤍'}</span> ${note.likes}
-                    </button>
-                    <button class="action-btn" data-action="share">
-                        <span class="icon">🔄</span>
-                    </button>
-                    <button class="action-btn ${note.isSaved ? 'saved' : ''}" data-action="save" data-id="${note.id}">
-                        <span class="icon">${note.isSaved ? '🧠' : '🔖'}</span>
-                    </button>
-                    ${note.author.id === 'me' ? `
-                        <button class="action-btn" data-action="delete" data-id="${note.id}" style="color: var(--danger);">
-                            <span class="icon">🗑️</span>
-                        </button>
-                    ` : ''}
-                </div>
-            </article>
-        `;
-    }).join('');
-}
+                `;
+            },
 
-function renderNichesView() {
-    const html = MOCK_NICHES.map(niche => {
-        const isFollowing = State.user.followingNiches.includes(niche.id);
-        return `
-            <div class="niche-card">
-                <div class="niche-icon">${niche.icon}</div>
-                <div class="niche-name">${niche.name}</div>
-                <div class="niche-stats">${niche.followers} notas</div>
-                <button class="btn-follow ${isFollowing ? 'following' : ''}" data-id="${niche.id}">
-                    ${isFollowing ? 'Siguiendo' : 'Seguir'}
-                </button>
-            </div>
-        `;
-    }).join('');
-    
-    return `<div class="niches-grid">${html}</div>`;
-}
+            escapeHTML(str) {
+                return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag]));
+            }
+        };
 
-function renderProfileView() {
-    const myNotes = State.notes.filter(n => n.author.id === 'me' && n.visibility === 'public');
-    const mySaved = State.notes.filter(n => n.isSaved);
-    
-    const listToRender = State.profileTab === 'notes' ? myNotes : mySaved;
-
-    return `
-        <div class="profile-header">
-            <div class="profile-info">
-                <img src="${State.user.avatar}" class="profile-avatar" alt="Me">
-                <div>
-                    <div style="font-size: 20px; font-weight: 800;">${State.user.name}</div>
-                    <div style="color: var(--text-muted);">@${State.user.handle}</div>
-                </div>
-            </div>
-            <div class="profile-stats">
-                <div class="stat"><span class="stat-val">${State.user.stats.following}</span><span class="stat-label">Siguiendo</span></div>
-                <div class="stat"><span class="stat-val">${State.user.stats.followers}</span><span class="stat-label">Seguidores</span></div>
-                <div class="stat"><span class="stat-val">${State.user.followingNiches.length}</span><span class="stat-label">Nichos</span></div>
-            </div>
-        </div>
-        <div class="tabs">
-            <button class="tab profile-tab ${State.profileTab === 'notes' ? 'active' : ''}" data-ptab="notes">Mis Notas</button>
-            <button class="tab profile-tab ${State.profileTab === 'saved' ? 'active' : ''}" data-ptab="saved">Cerebro</button>
-        </div>
-        <div>
-            ${renderFeed(listToRender)}
-        </div>
-    `;
-}
-
-// Utils
-function escapeHTML(str) {
-    return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag]));
-}
-
-function getRelativeTime(timestamp) {
-    const diff = Math.floor((Date.now() - timestamp) / 1000);
-    if (diff < 60) return 'ahora';
-    if (diff < 3600) return `${Math.floor(diff / 60)}m`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
-    return `${Math.floor(diff / 86400)}d`;
-}
-
-// Boot
-document.documentElement.setAttribute('data-theme', State.theme);
-initEvents();
-setTab('home');
-
-</script>
+        // Boot App
+        document.addEventListener('DOMContentLoaded', () => UI.init());
+    </script>
 </body>
 </html>
