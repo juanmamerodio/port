@@ -1,297 +1,169 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="es" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#ffffff" id="meta-theme-color">
     <title>Notebing - Premium Social Experience</title>
     
-    <!-- Inter Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         /* ==========================================================================
-           1. DESIGN SYSTEM & THEMING (CSS Variables)
+           1. DESIGN SYSTEM & THEMING (Reused & Extended)
            ========================================================================== */
         :root {
-            /* Light Theme */
             --bg-base: #f0f2f5;
             --bg-surface: #ffffff;
             --bg-surface-hover: #f7f9f9;
             --bg-glass: rgba(255, 255, 255, 0.85);
-            
             --text-primary: #0f1419;
             --text-secondary: #536471;
             --text-inverse: #ffffff;
-            
-            --accent-primary: #4f46e5; /* Indigo */
+            --accent-primary: #4f46e5;
             --accent-hover: #4338ca;
             --accent-alpha: rgba(79, 70, 229, 0.1);
-            
             --border-color: #eff3f4;
             --danger-color: #f91880;
             --danger-alpha: rgba(249, 24, 128, 0.1);
             --success-color: #00ba7c;
             --success-alpha: rgba(0, 186, 124, 0.1);
-            
             --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
             --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-            
             --radius-sm: 8px;
             --radius-md: 16px;
             --radius-lg: 24px;
             --radius-full: 9999px;
-            
             --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
             --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        [data-theme="dark"] {
-            /* Dark Theme */
+        }[data-theme="dark"] {
             --bg-base: #000000;
             --bg-surface: #16181c;
             --bg-surface-hover: #1d1f23;
             --bg-glass: rgba(22, 24, 28, 0.85);
-            
             --text-primary: #e7e9ea;
             --text-secondary: #71767b;
-            --text-inverse: #ffffff;
-            
             --border-color: #2f3336;
             --shadow-sm: 0 1px 2px rgba(255,255,255,0.02);
             --shadow-md: 0 4px 12px rgba(0,0,0,0.5);
         }
 
-        /* ==========================================================================
-           2. RESET & BASE
-           ========================================================================== */
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--bg-base);
-            color: var(--text-primary);
-            line-height: 1.5;
-            transition: background-color var(--transition-smooth), color var(--transition-smooth);
-            overflow-y: scroll;
-        }
-
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-base); color: var(--text-primary); line-height: 1.5; overflow-y: scroll; }
         button, input, select, textarea { font-family: inherit; border: none; background: none; outline: none; }
         button { cursor: pointer; transition: transform var(--transition-fast), background-color var(--transition-fast); }
-        button:active { transform: scale(0.95); } /* Microinteraction: Tactile feedback */
-        
+        button:active { transform: scale(0.95); }
         a { color: var(--accent-primary); text-decoration: none; }
 
-        /* ==========================================================================
-           3. LAYOUT (Mobile First -> Desktop)
-           ========================================================================== */
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            max-width: 1280px;
-            margin: 0 auto;
-        }
+        /* Layout */
+        .app-container { display: flex; flex-direction: column; min-height: 100vh; max-width: 1280px; margin: 0 auto; }
+        .main-content { flex: 1; width: 100%; max-width: 600px; margin: 0 auto; padding-bottom: 80px; border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color); background-color: var(--bg-surface); min-height: 100vh; }
+        .sidebar-left, .sidebar-right { display: none; }
 
-        .main-content {
-            flex: 1;
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            padding-bottom: 80px; /* Space for mobile bottom nav */
-            border-left: 1px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
-            background-color: var(--bg-surface);
-            min-height: 100vh;
-        }
-
-        .sidebar-left, .sidebar-right { display: none; } /* Hidden on mobile */
-
-        /* ==========================================================================
-           4. COMPONENTS
-           ========================================================================== */
-        
-        /* Top App Bar */
-        .top-bar {
-            position: sticky; top: 0; z-index: 50;
-            background: var(--bg-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            padding: 16px; border-bottom: 1px solid var(--border-color);
-            display: flex; justify-content: space-between; align-items: center;
-            transition: background-color var(--transition-smooth);
-        }
+        /* Top Bar & Nav */
+        .top-bar { position: sticky; top: 0; z-index: 50; background: var(--bg-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
         .top-bar h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
-        .top-bar-actions { display: flex; gap: 12px; align-items: center; }
-        
-        .icon-btn {
-            width: 40px; height: 40px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 20px; color: var(--text-primary);
-            background: transparent; transition: var(--transition-fast);
-        }
+        .icon-btn { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--text-primary); transition: var(--transition-fast); }
         .icon-btn:hover { background: var(--bg-surface-hover); }
-
-        /* Mobile Bottom Nav */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%; z-index: 50;
-            background: var(--bg-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-top: 1px solid var(--border-color);
-            display: flex; justify-content: space-around; padding: 12px 8px;
-            padding-bottom: calc(12px + env(safe-area-inset-bottom));
-        }
-        .nav-item {
-            display: flex; flex-direction: column; align-items: center; gap: 4px;
-            color: var(--text-secondary); font-size: 10px; font-weight: 600;
-            padding: 8px 16px; border-radius: var(--radius-md);
-        }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; z-index: 50; background: var(--bg-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 12px 8px; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-secondary); font-size: 10px; font-weight: 600; padding: 8px 16px; border-radius: var(--radius-md); }
         .nav-item .icon { font-size: 24px; transition: transform var(--transition-fast); }
         .nav-item.active { color: var(--text-primary); }
         .nav-item.active .icon { transform: scale(1.1); }
 
         /* Composer */
         .composer { padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; gap: 12px; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; object-fit: cover; }
         .composer-body { flex: 1; }
-        .composer textarea {
-            width: 100%; font-size: 18px; color: var(--text-primary);
-            resize: none; min-height: 60px; padding-top: 8px;
-        }
+        .composer textarea { width: 100%; font-size: 18px; color: var(--text-primary); resize: none; min-height: 60px; padding-top: 8px; }
         .composer textarea::placeholder { color: var(--text-secondary); }
         .composer-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 12px; }
         .select-group { display: flex; gap: 8px; }
-        .pill-select {
-            padding: 6px 12px; border-radius: var(--radius-full); font-size: 13px; font-weight: 600;
-            background: var(--bg-base); color: var(--accent-primary); border: 1px solid var(--border-color);
-            cursor: pointer; appearance: none;
-        }
-        .btn-primary {
-            background: var(--accent-primary); color: var(--text-inverse);
-            padding: 8px 20px; border-radius: var(--radius-full); font-weight: 700; font-size: 15px;
-        }
+        .pill-select { padding: 6px 12px; border-radius: var(--radius-full); font-size: 13px; font-weight: 600; background: var(--bg-base); color: var(--accent-primary); border: 1px solid var(--border-color); cursor: pointer; appearance: none; }
+        .btn-primary { background: var(--accent-primary); color: var(--text-inverse); padding: 8px 20px; border-radius: var(--radius-full); font-weight: 700; font-size: 15px; }
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
         /* Feed & Note Cards */
         .feed-container { display: flex; flex-direction: column; }
-        .note-card {
-            padding: 16px; border-bottom: 1px solid var(--border-color);
-            transition: background-color var(--transition-fast);
-            animation: fadeIn 0.4s ease forwards;
-        }
+        .note-card { padding: 16px; border-bottom: 1px solid var(--border-color); transition: background-color var(--transition-fast); animation: fadeIn 0.4s ease forwards; }
         .note-card:hover { background-color: var(--bg-surface-hover); }
-        
-        .note-header { display: flex; gap: 12px; margin-bottom: 4px; }
-        .note-meta { display: flex; flex-direction: column; justify-content: center; }
+        .note-header { display: flex; gap: 12px; margin-bottom: 4px; position: relative; }
+        .note-meta { display: flex; flex-direction: column; justify-content: center; flex: 1; }
         .note-author { font-weight: 700; font-size: 15px; color: var(--text-primary); display: flex; align-items: center; gap: 4px; }
         .note-handle { color: var(--text-secondary); font-weight: 400; font-size: 14px; }
         
+        /* New: Edit/Delete Options */
+        .note-options { position: absolute; right: 0; top: 0; display: flex; gap: 8px; }
+        .opt-btn { color: var(--text-secondary); font-size: 14px; padding: 4px; border-radius: 50%; }
+        .opt-btn:hover { background: var(--bg-base); color: var(--danger-color); }
+        .opt-btn.edit:hover { color: var(--accent-primary); }
+
         .note-content { font-size: 15px; line-height: 1.5; margin-left: 52px; margin-bottom: 12px; white-space: pre-wrap; word-break: break-word; }
-        
         .badges-container { margin-left: 52px; margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
-        .badge {
-            display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600;
-            padding: 4px 10px; border-radius: var(--radius-full);
-        }
+        .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: var(--radius-full); }
         .badge-ai { background: var(--accent-alpha); color: var(--accent-primary); }
         .badge-niche { background: var(--bg-base); color: var(--text-secondary); border: 1px solid var(--border-color); }
         .badge-private { background: rgba(255, 159, 10, 0.1); color: #ff9f0a; }
 
         .note-actions { margin-left: 52px; display: flex; justify-content: space-between; max-width: 400px; }
-        .action-btn {
-            display: flex; align-items: center; gap: 6px; color: var(--text-secondary);
-            font-size: 13px; font-weight: 500; padding: 8px; border-radius: var(--radius-full);
-        }
+        .action-btn { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 13px; font-weight: 500; padding: 8px; border-radius: var(--radius-full); }
         .action-btn:hover { background: var(--bg-base); }
-        
-        /* Interaction States */
         .action-btn.liked { color: var(--danger-color); }
         .action-btn.liked:hover { background: var(--danger-alpha); }
         .action-btn.saved { color: var(--success-color); }
         .action-btn.saved:hover { background: var(--success-alpha); }
-        
-        /* Heart Animation */
+        .action-btn.renoted { color: var(--success-color); }
         @keyframes heartBurst { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
         .action-btn.liked .icon { animation: heartBurst 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-        /* Skeletons & Loading */
-        .skeleton {
-            background: linear-gradient(90deg, var(--bg-base) 25%, var(--border-color) 50%, var(--bg-base) 75%);
-            background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: var(--radius-sm);
-        }
+        /* Skeletons & Empty States */
+        .skeleton { background: linear-gradient(90deg, var(--bg-base) 25%, var(--border-color) 50%, var(--bg-base) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: var(--radius-sm); }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        
         .skeleton-card { padding: 16px; border-bottom: 1px solid var(--border-color); display: flex; gap: 12px; }
         .sk-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; }
         .sk-body { flex: 1; display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
         .sk-line { height: 12px; width: 100%; }
         .sk-line.short { width: 40%; }
-
-        /* Empty States */
-        .empty-state {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 60px 20px; text-align: center; color: var(--text-secondary);
-        }
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; color: var(--text-secondary); }
         .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.8; }
         .empty-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
         .empty-desc { font-size: 15px; max-width: 300px; }
 
         /* Toast */
-        .toast {
-            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(100px);
-            background: var(--accent-primary); color: white; padding: 12px 24px;
-            border-radius: var(--radius-full); font-weight: 600; font-size: 14px;
-            box-shadow: var(--shadow-md); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 1000; opacity: 0; pointer-events: none;
-        }
+        .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--accent-primary); color: white; padding: 12px 24px; border-radius: var(--radius-full); font-weight: 600; font-size: 14px; box-shadow: var(--shadow-md); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 1000; opacity: 0; pointer-events: none; }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* ==========================================================================
-           5. RESPONSIVE (Tablet & Desktop)
-           ========================================================================== */
+        /* Responsive */
         @media (min-width: 768px) {
             .app-container { flex-direction: row; justify-content: center; padding: 0 20px; }
             .bottom-nav { display: none; }
             .main-content { padding-bottom: 0; margin: 0; }
-            
-            .sidebar-left {
-                display: flex; flex-direction: column; width: 260px; padding: 20px;
-                position: sticky; top: 0; height: 100vh;
-            }
+            .sidebar-left { display: flex; flex-direction: column; width: 260px; padding: 20px; position: sticky; top: 0; height: 100vh; }
             .logo-desktop { font-size: 28px; font-weight: 800; color: var(--text-primary); margin-bottom: 32px; padding-left: 12px; }
             .logo-desktop span { color: var(--accent-primary); }
-            
             .nav-desktop { display: flex; flex-direction: column; gap: 8px; }
-            .nav-item-desktop {
-                display: flex; align-items: center; gap: 16px; padding: 12px 20px;
-                font-size: 20px; font-weight: 600; color: var(--text-primary);
-                border-radius: var(--radius-full); transition: var(--transition-fast);
-            }
+            .nav-item-desktop { display: flex; align-items: center; gap: 16px; padding: 12px 20px; font-size: 20px; font-weight: 600; color: var(--text-primary); border-radius: var(--radius-full); transition: var(--transition-fast); }
             .nav-item-desktop:hover { background: var(--bg-surface-hover); }
             .nav-item-desktop.active { font-weight: 800; }
             .nav-item-desktop .icon { font-size: 26px; }
-            
-            .btn-compose-desktop {
-                margin-top: 24px; background: var(--accent-primary); color: white;
-                padding: 16px; border-radius: var(--radius-full); font-size: 18px; font-weight: 700;
-                box-shadow: var(--shadow-md); width: 100%;
-            }
+            .btn-compose-desktop { margin-top: 24px; background: var(--accent-primary); color: white; padding: 16px; border-radius: var(--radius-full); font-size: 18px; font-weight: 700; box-shadow: var(--shadow-md); width: 100%; }
             .btn-compose-desktop:hover { background: var(--accent-hover); }
-
-            .sidebar-right {
-                display: flex; flex-direction: column; width: 320px; padding: 20px;
-                position: sticky; top: 0; height: 100vh; gap: 20px;
-            }
-            .widget {
-                background: var(--bg-surface); border-radius: var(--radius-md);
-                border: 1px solid var(--border-color); padding: 16px;
-            }
+            
+            .sidebar-right { display: flex; flex-direction: column; width: 320px; padding: 20px; position: sticky; top: 0; height: 100vh; gap: 20px; }
+            .widget { background: var(--bg-surface); border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 16px; }
             .widget h3 { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
             .trend-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
             .trend-item:last-child { border-bottom: none; padding-bottom: 0; }
             .trend-info span { display: block; font-size: 13px; color: var(--text-secondary); }
             .trend-info strong { font-size: 15px; }
+            
+            /* New: Follow Button */
+            .btn-follow { background: var(--text-primary); color: var(--bg-base); padding: 6px 16px; border-radius: var(--radius-full); font-size: 13px; font-weight: 700; }
+            .btn-follow.following { background: transparent; color: var(--text-primary); border: 1px solid var(--border-color); }
+            .btn-follow.following:hover { border-color: var(--danger-color); color: var(--danger-color); }
             
             .toast { bottom: 40px; }
         }
@@ -300,30 +172,20 @@
 <body>
 
     <div class="app-container">
-        
         <!-- DESKTOP LEFT SIDEBAR -->
         <aside class="sidebar-left">
             <div class="logo-desktop">Note<span>bing</span>.</div>
             <nav class="nav-desktop">
-                <a href="#" class="nav-item-desktop active" data-view="home">
-                    <span class="icon">🏠</span> <span>Inicio</span>
-                </a>
-                <a href="#" class="nav-item-desktop" data-view="niches">
-                    <span class="icon">🎯</span> <span>Nichos</span>
-                </a>
-                <a href="#" class="nav-item-desktop" data-view="brain">
-                    <span class="icon">🧠</span> <span>Cerebro</span>
-                </a>
-                <a href="#" class="nav-item-desktop" data-view="profile">
-                    <span class="icon">👤</span> <span>Perfil</span>
-                </a>
+                <a href="#" class="nav-item-desktop active" data-view="home"><span class="icon">🏠</span> <span>Inicio</span></a>
+                <a href="#" class="nav-item-desktop" data-view="niches"><span class="icon">🎯</span> <span>Nichos</span></a>
+                <a href="#" class="nav-item-desktop" data-view="brain"><span class="icon">🧠</span> <span>Cerebro</span></a>
+                <a href="#" class="nav-item-desktop" data-view="profile"><span class="icon">👤</span> <span>Perfil</span></a>
             </nav>
             <button class="btn-compose-desktop" onclick="document.getElementById('note-input').focus()">Postear</button>
         </aside>
 
         <!-- MAIN FEED -->
         <main class="main-content">
-            <!-- Top App Bar -->
             <header class="top-bar">
                 <div class="avatar" style="width: 32px; height: 32px; font-size: 14px;">T</div>
                 <h1 id="view-title">Inicio</h1>
@@ -332,7 +194,6 @@
                 </div>
             </header>
 
-            <!-- Composer -->
             <div class="composer" id="composer-section">
                 <div class="avatar">T</div>
                 <div class="composer-body">
@@ -346,9 +207,7 @@
                             </select>
                             <select class="pill-select" id="note-niche">
                                 <option value="">✨ IA Auto</option>
-                                <option value="tech">💻 Tech</option>
-                                <option value="startups">🚀 Startups</option>
-                                <option value="design">🎨 Diseño</option>
+                                <!-- Injected dynamically -->
                             </select>
                         </div>
                         <button class="btn-primary" id="btn-publish">Postear</button>
@@ -356,73 +215,51 @@
                 </div>
             </div>
 
-            <!-- Feed Container -->
-            <div id="feed-container" class="feed-container">
-                <!-- Content injected via JS -->
-            </div>
+            <div id="feed-container" class="feed-container"></div>
         </main>
 
         <!-- DESKTOP RIGHT SIDEBAR -->
         <aside class="sidebar-right">
-            <div class="widget">
-                <h3>Nichos en Tendencia</h3>
-                <div class="trend-item">
-                    <div class="trend-info"><span>1 · Tecnología</span><strong>#AI</strong><span>12.5k notas</span></div>
-                </div>
-                <div class="trend-item">
-                    <div class="trend-info"><span>2 · Startups</span><strong>#BuildInPublic</strong><span>8.2k notas</span></div>
-                </div>
-                <div class="trend-item">
-                    <div class="trend-info"><span>3 · Diseño</span><strong>#UXUI</strong><span>5.1k notas</span></div>
-                </div>
+            <div class="widget" id="widget-niches">
+                <h3>Nichos Sugeridos</h3>
+                <div id="niches-list"></div>
+            </div>
+            <div class="widget" id="widget-users">
+                <h3>A quién seguir</h3>
+                <div id="users-list"></div>
             </div>
         </aside>
 
         <!-- MOBILE BOTTOM NAV -->
         <nav class="bottom-nav">
-            <a href="#" class="nav-item active" data-view="home">
-                <span class="icon">🏠</span><span>Inicio</span>
-            </a>
-            <a href="#" class="nav-item" data-view="niches">
-                <span class="icon">🎯</span><span>Nichos</span>
-            </a>
-            <a href="#" class="nav-item" data-view="brain">
-                <span class="icon">🧠</span><span>Cerebro</span>
-            </a>
-            <a href="#" class="nav-item" data-view="profile">
-                <span class="icon">👤</span><span>Perfil</span>
-            </a>
+            <a href="#" class="nav-item active" data-view="home"><span class="icon">🏠</span><span>Inicio</span></a>
+            <a href="#" class="nav-item" data-view="niches"><span class="icon">🎯</span><span>Nichos</span></a>
+            <a href="#" class="nav-item" data-view="brain"><span class="icon">🧠</span><span>Cerebro</span></a>
+            <a href="#" class="nav-item" data-view="profile"><span class="icon">👤</span><span>Perfil</span></a>
         </nav>
-
     </div>
 
-    <!-- Toast Notification -->
     <div class="toast" id="toast">Notificación</div>
 
     <script>
         /**
-         * NOTEBING - High Performance Mobile-First Prototype
-         * Architecture: Vanilla JS with Optimistic UI Updates & State Management
+         * NOTEBING - Production-Level Simulation
+         * Architecture: Normalized State, Mock Engine, Optimistic UI
          */
 
-        // --- 1. HAPTICS & MULTIMODAL ---
         const Haptics = {
             light() { if (navigator.vibrate) navigator.vibrate(10); },
             medium() { if (navigator.vibrate) navigator.vibrate(30); },
             heavy() { if (navigator.vibrate) navigator.vibrate([30, 50, 30]); }
         };
 
-        // --- 2. THEME MANAGER ---
         const ThemeManager = {
             init() {
                 this.toggleBtn = document.getElementById('theme-toggle');
                 this.metaThemeColor = document.getElementById('meta-theme-color');
-                
-                // Check local storage or system preference
                 const savedTheme = localStorage.getItem('theme');
                 const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                 this.currentTheme = savedTheme || (systemDark ? 'dark' : 'light');
-                
                 this.applyTheme(this.currentTheme);
                 this.toggleBtn.addEventListener('click', () => {
                     Haptics.light();
@@ -438,62 +275,112 @@
             }
         };
 
-        // --- 3. STATE MANAGEMENT ---
+        // --- 1. NORMALIZED STATE ---
         const AppState = {
             currentView: 'home',
-            currentUser: { id: 'u1', handle: 'tu_usuario', name: 'Tú', avatar: 'T' },
             isPublishing: false,
-            notes:[
-                {
-                    id: 'n1',
-                    author: { name: 'Sarah Dev', handle: 'sarah_codes', avatar: 'S' },
-                    content: 'Acabo de implementar Clean Architecture en mi app. Separar la capa de dominio hace que los tests unitarios sean un paseo por el parque. 🚀',
-                    visibility: 'PUBLIC',
-                    niche: { id: 'tech', name: 'Tecnología', icon: '💻' },
-                    likes: 42, isLiked: false, isSaved: false, isAiClassified: false, timestamp: '2h'
-                },
-                {
-                    id: 'n2',
-                    author: { name: 'Startup Founder', handle: 'build_in_public', avatar: 'F' },
-                    content: 'El mayor error al crear un MVP es enamorarse de la solución y no del problema. Lanza rápido, equivócate rápido, itera más rápido.',
-                    visibility: 'PUBLIC',
-                    niche: { id: 'startups', name: 'Startups', icon: '🚀' },
-                    likes: 128, isLiked: true, isSaved: false, isAiClassified: true, timestamp: '5h'
-                }
-            ]
+            currentUser: { 
+                id: 'u_me', handle: 'tu_usuario', name: 'Tú', avatar: 'T',
+                likedNotes: new Set(), savedNotes: new Set(), renotedNotes: new Set(),
+                followedUsers: new Set(), followedNiches: new Set()
+            },
+            users: {},   // { id: { id, name, handle, avatar } }
+            niches: {},  // { id: { id, name, icon, followers } }
+            notes: {}    // { id: { id, authorId, content, visibility, nicheId, likes, renotes, timestamp, isAiClassified } }
         };
 
-        // --- 4. API SIMULATION (Delays & AI) ---
+        // --- 2. MOCK DATA ENGINE ---
+        const MockEngine = {
+            generate() {
+                // 1. Generate Niches
+                const baseNiches =[
+                    { id: 'tech', name: 'Tecnología', icon: '💻' }, { id: 'startups', name: 'Startups', icon: '🚀' },
+                    { id: 'philosophy', name: 'Filosofía', icon: '🤔' }, { id: 'ai', name: 'IA', icon: '🤖' },
+                    { id: 'fitness', name: 'Fitness', icon: '💪' }, { id: 'design', name: 'Diseño', icon: '🎨' },
+                    { id: 'crypto', name: 'Crypto', icon: '🪙' }, { id: 'music', name: 'Música', icon: '🎵' }
+                ];
+                baseNiches.forEach(n => AppState.niches[n.id] = { ...n, followers: Math.floor(Math.random() * 5000) + 500 });
+
+                // 2. Generate 30 Users
+                const firstNames =['Alex', 'Sarah', 'Mike', 'Emma', 'David', 'Laura', 'Chris', 'Ana', 'James', 'Elena'];
+                const lastNames =['Dev', 'Smith', 'Tech', 'Design', 'Founder', 'Code', 'Crypto', 'Art', 'Fit', 'AI'];
+                for (let i = 1; i <= 30; i++) {
+                    const name = `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
+                    const handle = name.toLowerCase().replace(' ', '_') + Math.floor(Math.random() * 99);
+                    AppState.users[`u_${i}`] = { id: `u_${i}`, name, handle, avatar: name.charAt(0) };
+                }
+                AppState.users['u_me'] = AppState.currentUser; // Add self
+
+                // 3. Generate 100 Notes
+                const contents =[
+                    "Acabo de descubrir un bug en producción. Deséenme suerte. 🐛",
+                    "El diseño minimalista no es falta de elementos, es la cantidad exacta de ellos.",
+                    "¿Alguien más piensa que la IA va a cambiar la forma en que programamos en los próximos 2 años?",
+                    "Día 1 construyendo mi startup en público. Hoy definimos el MVP.",
+                    "Levantarse a las 5 AM para entrenar es la mejor decisión que he tomado.",
+                    "Bitcoin rompiendo resistencias otra vez. Qué locura de mercado.",
+                    "Clean Architecture salva vidas cuando el proyecto escala. No lo ignoren.",
+                    "La filosofía estoica me ha ayudado más en los negocios que cualquier libro de management."
+                ];
+                
+                const now = Date.now();
+                for (let i = 1; i <= 100; i++) {
+                    const authorId = `u_${Math.floor(Math.random() * 30) + 1}`;
+                    const nicheKeys = Object.keys(AppState.niches);
+                    const nicheId = Math.random() > 0.3 ? nicheKeys[Math.floor(Math.random() * nicheKeys.length)] : null;
+                    
+                    AppState.notes[`n_${i}`] = {
+                        id: `n_${i}`,
+                        authorId: authorId,
+                        content: contents[Math.floor(Math.random() * contents.length)],
+                        visibility: 'PUBLIC',
+                        nicheId: nicheId,
+                        likes: Math.floor(Math.random() * 200),
+                        renotes: Math.floor(Math.random() * 50),
+                        timestamp: now - Math.floor(Math.random() * 172800000), // Up to 48 hours ago
+                        isAiClassified: Math.random() > 0.7
+                    };
+                }
+
+                // Pre-follow some users and niches for the current user to have a populated feed
+                AppState.currentUser.followedUsers.add('u_1').add('u_2').add('u_3');
+                AppState.currentUser.followedNiches.add('tech').add('startups');
+            }
+        };
+
+        // --- 3. API SIMULATION ---
         const ApiService = {
             async publishNote(content, visibility, nicheId) {
                 return new Promise(resolve => setTimeout(() => {
-                    resolve({
-                        id: 'n_' + Date.now(),
-                        author: AppState.currentUser,
-                        content, visibility, likes: 0, isLiked: false, isSaved: visibility === 'PRIVATE',
-                        timestamp: 'Ahora'
-                    });
-                }, 800));
+                    const id = 'n_' + Date.now();
+                    const note = {
+                        id, authorId: 'u_me', content, visibility, nicheId,
+                        likes: 0, renotes: 0, timestamp: Date.now(), isAiClassified: false
+                    };
+                    AppState.notes[id] = note;
+                    resolve(note);
+                }, 600));
             },
             async classifyWithGemini(content) {
                 return new Promise(resolve => setTimeout(() => {
                     const text = content.toLowerCase();
-                    if (text.includes('código') || text.includes('app') || text.includes('tech')) 
-                        resolve({ id: 'tech', name: 'Tecnología', icon: '💻' });
-                    else if (text.includes('negocio') || text.includes('mvp') || text.includes('startup')) 
-                        resolve({ id: 'startups', name: 'Startups', icon: '🚀' });
-                    else 
-                        resolve({ id: 'design', name: 'Diseño', icon: '🎨' });
-                }, 1500));
+                    if (text.includes('bug') || text.includes('tech') || text.includes('código')) resolve('tech');
+                    else if (text.includes('startup') || text.includes('mvp')) resolve('startups');
+                    else if (text.includes('diseño')) resolve('design');
+                    else resolve('philosophy');
+                }, 1000));
             }
         };
 
-        // --- 5. UI CONTROLLER ---
+        // --- 4. UI CONTROLLER ---
         const UI = {
             init() {
+                MockEngine.generate();
                 ThemeManager.init();
                 this.cacheDOM();
+                this.populateSelects();
                 this.bindEvents();
+                this.renderRightSidebar();
                 this.renderFeed();
             },
 
@@ -505,10 +392,19 @@
                 this.btnPublish = document.getElementById('btn-publish');
                 this.navItems = document.querySelectorAll('.nav-item, .nav-item-desktop');
                 this.toast = document.getElementById('toast');
+                this.nicheSelect = document.getElementById('note-niche');
+            },
+
+            populateSelects() {
+                Object.values(AppState.niches).forEach(niche => {
+                    const option = document.createElement('option');
+                    option.value = niche.id;
+                    option.textContent = `${niche.icon} ${niche.name}`;
+                    this.nicheSelect.appendChild(option);
+                });
             },
 
             bindEvents() {
-                // Navigation
                 this.navItems.forEach(item => {
                     item.addEventListener('click', (e) => {
                         e.preventDefault();
@@ -518,37 +414,46 @@
                     });
                 });
 
-                // Publish
                 this.btnPublish.addEventListener('click', () => {
                     Haptics.medium();
                     this.handlePublish();
                 });
 
-                // Feed Interactions (Event Delegation for Performance)
+                // Event Delegation for Feed
                 this.feedContainer.addEventListener('click', (e) => {
-                    const btn = e.target.closest('.action-btn');
+                    const btn = e.target.closest('.action-btn, .opt-btn');
                     if (!btn) return;
                     
                     Haptics.light();
                     const noteId = btn.dataset.id;
-                    if (btn.dataset.action === 'like') this.toggleLike(noteId, btn);
-                    if (btn.dataset.action === 'save') this.toggleSave(noteId, btn);
+                    const action = btn.dataset.action;
+                    
+                    if (action === 'like') this.toggleLike(noteId, btn);
+                    if (action === 'save') this.toggleSave(noteId, btn);
+                    if (action === 'renote') this.toggleRenote(noteId, btn);
+                    if (action === 'delete') this.deleteNote(noteId);
+                    if (action === 'edit') this.editNote(noteId);
+                });
+
+                // Event Delegation for Right Sidebar (Follows)
+                document.querySelector('.sidebar-right').addEventListener('click', (e) => {
+                    const btn = e.target.closest('.btn-follow');
+                    if (!btn) return;
+                    Haptics.light();
+                    if (btn.dataset.type === 'user') this.toggleFollowUser(btn.dataset.id, btn);
+                    if (btn.dataset.type === 'niche') this.toggleFollowNiche(btn.dataset.id, btn);
                 });
             },
 
             navigate(view) {
                 AppState.currentView = view;
-                
-                // Update Nav UI
                 this.navItems.forEach(item => item.classList.remove('active'));
                 document.querySelectorAll(`[data-view="${view}"]`).forEach(el => el.classList.add('active'));
                 
-                // Update Header & Composer
                 const titles = { 'home': 'Inicio', 'niches': 'Tus Nichos', 'brain': 'Segundo Cerebro' };
                 this.viewTitle.textContent = titles[view];
                 this.composerSection.style.display = view === 'brain' ? 'none' : 'flex';
 
-                // Scroll to top
                 window.scrollTo({ top: 0, behavior: 'smooth' });
                 this.renderFeed();
             },
@@ -558,77 +463,249 @@
                 if (!content || AppState.isPublishing) return;
 
                 const visibility = document.getElementById('note-visibility').value;
-                const nicheId = document.getElementById('note-niche').value;
+                let nicheId = this.nicheSelect.value;
 
                 this.setLoading(true);
-                this.renderSkeleton(); // Show skeleton at the top
+                this.renderSkeleton();
 
                 try {
-                    let finalNiche = null;
                     let isAiClassified = false;
-
                     if (!nicheId && visibility !== 'PRIVATE') {
                         this.showToast("✨ Gemini analizando contexto...");
-                        finalNiche = await ApiService.classifyWithGemini(content);
+                        nicheId = await ApiService.classifyWithGemini(content);
                         isAiClassified = true;
-                    } else if (nicheId) {
-                        const select = document.getElementById('note-niche');
-                        finalNiche = { id: nicheId, name: select.options[select.selectedIndex].text.split(' ')[1], icon: '🏷️' };
                     }
 
                     const newNote = await ApiService.publishNote(content, visibility, nicheId);
-                    newNote.niche = finalNiche;
                     newNote.isAiClassified = isAiClassified;
-
-                    AppState.notes.unshift(newNote);
                     
                     this.noteInput.value = '';
-                    document.getElementById('note-niche').value = '';
+                    this.nicheSelect.value = '';
                     
                     Haptics.heavy();
                     this.showToast("✅ Publicado");
-                    this.renderFeed(); // Re-render to show new note
+                    this.renderFeed();
                 } catch (error) {
                     this.showToast("❌ Error al publicar");
-                    this.renderFeed(); // Remove skeleton
+                    this.renderFeed();
                 } finally {
                     this.setLoading(false);
                 }
             },
 
-            // Optimistic UI Update for Likes (Fast Interaction)
-            toggleLike(noteId, btnElement) {
-                const note = AppState.notes.find(n => n.id === noteId);
-                if (!note) return;
-
-                // Update State
-                note.isLiked = !note.isLiked;
-                note.likes += note.isLiked ? 1 : -1;
-
-                // Update DOM directly (Optimistic, no full re-render)
-                btnElement.classList.toggle('liked', note.isLiked);
-                btnElement.innerHTML = `<span class="icon">${note.isLiked ? '❤️' : '🤍'}</span> ${note.likes}`;
+            // --- REAL INTERACTIONS ---
+            toggleLike(noteId, btn) {
+                const note = AppState.notes[noteId];
+                const isLiked = AppState.currentUser.likedNotes.has(noteId);
+                
+                if (isLiked) {
+                    AppState.currentUser.likedNotes.delete(noteId);
+                    note.likes--;
+                } else {
+                    AppState.currentUser.likedNotes.add(noteId);
+                    note.likes++;
+                }
+                
+                btn.classList.toggle('liked', !isLiked);
+                btn.innerHTML = `<span class="icon">${!isLiked ? '❤️' : '🤍'}</span> ${note.likes}`;
             },
 
-            // Optimistic UI Update for Saves
-            toggleSave(noteId, btnElement) {
-                const note = AppState.notes.find(n => n.id === noteId);
-                if (!note) return;
-
-                note.isSaved = !note.isSaved;
-                btnElement.classList.toggle('saved', note.isSaved);
-                btnElement.innerHTML = `<span class="icon">🧠</span>`;
-                
-                this.showToast(note.isSaved ? "🧠 Guardado en Cerebro" : "Removido del Cerebro");
-                
-                // If we are in the brain view and unsave, remove the card
-                if (AppState.currentView === 'brain' && !note.isSaved) {
-                    btnElement.closest('.note-card').style.display = 'none';
-                    // Check if empty
-                    if (AppState.notes.filter(n => n.isSaved || n.visibility === 'PRIVATE').length === 0) {
-                        this.renderFeed();
-                    }
+            toggleSave(noteId, btn) {
+                const isSaved = AppState.currentUser.savedNotes.has(noteId);
+                if (isSaved) {
+                    AppState.currentUser.savedNotes.delete(noteId);
+                } else {
+                    AppState.currentUser.savedNotes.add(noteId);
                 }
+                
+                btn.classList.toggle('saved', !isSaved);
+                this.showToast(!isSaved ? "🧠 Guardado en Cerebro" : "Removido del Cerebro");
+                
+                if (AppState.currentView === 'brain' && isSaved) this.renderFeed();
+            },
+
+            toggleRenote(noteId, btn) {
+                const note = AppState.notes[noteId];
+                const isRenoted = AppState.currentUser.renotedNotes.has(noteId);
+                
+                if (isRenoted) {
+                    AppState.currentUser.renotedNotes.delete(noteId);
+                    note.renotes--;
+                } else {
+                    AppState.currentUser.renotedNotes.add(noteId);
+                    note.renotes++;
+                    this.showToast("🔄 Re-Noteado a tus seguidores");
+                }
+                
+                btn.classList.toggle('renoted', !isRenoted);
+                btn.innerHTML = `<span class="icon">🔄</span> ${note.renotes > 0 ? note.renotes : ''}`;
+            },
+
+            deleteNote(noteId) {
+                if (confirm("¿Eliminar esta nota permanentemente?")) {
+                    delete AppState.notes[noteId];
+                    this.showToast("🗑️ Nota eliminada");
+                    this.renderFeed();
+                }
+            },
+
+            editNote(noteId) {
+                const note = AppState.notes[noteId];
+                const newContent = prompt("Edita tu nota:", note.content);
+                if (newContent !== null && newContent.trim() !== "") {
+                    note.content = newContent.trim();
+                    this.showToast("✏️ Nota actualizada");
+                    this.renderFeed();
+                }
+            },
+
+            toggleFollowUser(userId, btn) {
+                const isFollowing = AppState.currentUser.followedUsers.has(userId);
+                if (isFollowing) {
+                    AppState.currentUser.followedUsers.delete(userId);
+                    btn.textContent = "Seguir";
+                    btn.classList.remove('following');
+                } else {
+                    AppState.currentUser.followedUsers.add(userId);
+                    btn.textContent = "Siguiendo";
+                    btn.classList.add('following');
+                }
+                if (AppState.currentView === 'home') this.renderFeed();
+            },
+
+            toggleFollowNiche(nicheId, btn) {
+                const isFollowing = AppState.currentUser.followedNiches.has(nicheId);
+                if (isFollowing) {
+                    AppState.currentUser.followedNiches.delete(nicheId);
+                    btn.textContent = "Seguir";
+                    btn.classList.remove('following');
+                } else {
+                    AppState.currentUser.followedNiches.add(nicheId);
+                    btn.textContent = "Siguiendo";
+                    btn.classList.add('following');
+                }
+                if (AppState.currentView === 'home' || AppState.currentView === 'niches') this.renderFeed();
+            },
+
+            // --- RENDERING ---
+            renderRightSidebar() {
+                // Render Top Niches
+                const nichesList = document.getElementById('niches-list');
+                nichesList.innerHTML = Object.values(AppState.niches)
+                    .sort((a, b) => b.followers - a.followers).slice(0, 4)
+                    .map((n, i) => `
+                        <div class="trend-item">
+                            <div class="trend-info"><span>${i+1} · ${n.icon} ${n.name}</span><strong>${n.followers} notas</strong></div>
+                            <button class="btn-follow ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''}" data-type="niche" data-id="${n.id}">
+                                ${AppState.currentUser.followedNiches.has(n.id) ? 'Siguiendo' : 'Seguir'}
+                            </button>
+                        </div>
+                    `).join('');
+
+                // Render Suggested Users
+                const usersList = document.getElementById('users-list');
+                usersList.innerHTML = Object.values(AppState.users)
+                    .filter(u => u.id !== 'u_me' && !AppState.currentUser.followedUsers.has(u.id))
+                    .slice(0, 3)
+                    .map(u => `
+                        <div class="trend-item">
+                            <div class="trend-info" style="display:flex; align-items:center; gap:8px;">
+                                <div class="avatar" style="width:32px; height:32px; font-size:12px; background:#536471">${u.avatar}</div>
+                                <div><strong>${u.name}</strong><span>@${u.handle}</span></div>
+                            </div>
+                            <button class="btn-follow" data-type="user" data-id="${u.id}">Seguir</button>
+                        </div>
+                    `).join('');
+            },
+
+            renderFeed() {
+                this.feedContainer.innerHTML = '';
+                
+                let feedNotes = Object.values(AppState.notes).sort((a, b) => b.timestamp - a.timestamp);
+                
+                if (AppState.currentView === 'brain') {
+                    feedNotes = feedNotes.filter(n => AppState.currentUser.savedNotes.has(n.id) || n.visibility === 'PRIVATE');
+                } else if (AppState.currentView === 'niches') {
+                    feedNotes = feedNotes.filter(n => n.nicheId && AppState.currentUser.followedNiches.has(n.nicheId) && n.visibility !== 'PRIVATE');
+                } else {
+                    // Home: Followed users + Followed niches + Own notes
+                    feedNotes = feedNotes.filter(n => 
+                        n.visibility !== 'PRIVATE' && 
+                        (AppState.currentUser.followedUsers.has(n.authorId) || 
+                        (n.nicheId && AppState.currentUser.followedNiches.has(n.nicheId)) || 
+                        n.authorId === 'u_me')
+                    );
+                }
+
+                if (feedNotes.length === 0) {
+                    this.renderEmptyState();
+                    return;
+                }
+
+                const fragment = document.createDocumentFragment();
+
+                feedNotes.forEach(note => {
+                    const author = AppState.users[note.authorId];
+                    const niche = note.nicheId ? AppState.niches[note.nicheId] : null;
+                    const isOwn = note.authorId === 'u_me';
+                    
+                    const article = document.createElement('article');
+                    article.className = 'note-card';
+                    
+                    let badgesHTML = '';
+                    if (note.isAiClassified) badgesHTML += `<span class="badge badge-ai">✨ Gemini AI</span>`;
+                    if (niche && note.visibility !== 'PRIVATE') badgesHTML += `<span class="badge badge-niche">${niche.icon} ${niche.name}</span>`;
+                    if (note.visibility === 'PRIVATE') badgesHTML += `<span class="badge badge-private">🔒 Privado</span>`;
+
+                    const isLiked = AppState.currentUser.likedNotes.has(note.id);
+                    const isSaved = AppState.currentUser.savedNotes.has(note.id);
+                    const isRenoted = AppState.currentUser.renotedNotes.has(note.id);
+
+                    article.innerHTML = `
+                        <div class="note-header">
+                            <div class="avatar" style="background: ${isOwn ? 'var(--accent-primary)' : '#536471'}">${author.avatar}</div>
+                            <div class="note-meta">
+                                <div class="note-author">${author.name} <span class="note-handle">@${author.handle} · ${this.timeAgo(note.timestamp)}</span></div>
+                            </div>
+                            ${isOwn ? `
+                                <div class="note-options">
+                                    <button class="opt-btn edit" data-action="edit" data-id="${note.id}">✏️</button>
+                                    <button class="opt-btn" data-action="delete" data-id="${note.id}">🗑️</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="note-content">${this.escapeHTML(note.content)}</div>
+                        ${badgesHTML ? `<div class="badges-container">${badgesHTML}</div>` : ''}
+                        <div class="note-actions">
+                            <button class="action-btn ${isLiked ? 'liked' : ''}" data-action="like" data-id="${note.id}">
+                                <span class="icon">${isLiked ? '❤️' : '🤍'}</span> ${note.likes}
+                            </button>
+                            <button class="action-btn ${isRenoted ? 'renoted' : ''}" data-action="renote" data-id="${note.id}">
+                                <span class="icon">🔄</span> ${note.renotes > 0 ? note.renotes : ''}
+                            </button>
+                            <button class="action-btn ${isSaved ? 'saved' : ''}" data-action="save" data-id="${note.id}">
+                                <span class="icon">🧠</span>
+                            </button>
+                        </div>
+                    `;
+                    fragment.appendChild(article);
+                });
+
+                this.feedContainer.appendChild(fragment);
+            },
+
+            renderEmptyState() {
+                const states = {
+                    'home': { icon: '📭', title: 'Tu feed está vacío', desc: 'Sigue a otros usuarios o publica tu primera nota.' },
+                    'niches': { icon: '🎯', title: 'Sin nichos aún', desc: 'Sigue nichos en la barra lateral para ver contenido aquí.' },
+                    'brain': { icon: '🧠', title: 'Cerebro en blanco', desc: 'Guarda notas públicas o crea notas privadas para construir tu base de conocimiento.' }
+                };
+                const state = states[AppState.currentView];
+                this.feedContainer.innerHTML = `<div class="empty-state"><div class="empty-icon">${state.icon}</div><div class="empty-title">${state.title}</div><div class="empty-desc">${state.desc}</div></div>`;
+            },
+
+            renderSkeleton() {
+                this.feedContainer.insertAdjacentHTML('afterbegin', `<div class="skeleton-card" id="temp-skeleton"><div class="sk-avatar skeleton"></div><div class="sk-body"><div class="sk-line skeleton"></div><div class="sk-line skeleton"></div><div class="sk-line short skeleton"></div></div></div>`);
             },
 
             setLoading(isLoading) {
@@ -644,90 +721,14 @@
                 setTimeout(() => this.toast.classList.remove('show'), 3000);
             },
 
-            renderSkeleton() {
-                const skeletonHTML = `
-                    <div class="skeleton-card" id="temp-skeleton">
-                        <div class="sk-avatar skeleton"></div>
-                        <div class="sk-body">
-                            <div class="sk-line skeleton"></div>
-                            <div class="sk-line skeleton"></div>
-                            <div class="sk-line short skeleton"></div>
-                        </div>
-                    </div>
-                `;
-                this.feedContainer.insertAdjacentHTML('afterbegin', skeletonHTML);
-            },
-
-            renderFeed() {
-                this.feedContainer.innerHTML = '';
-                
-                let filteredNotes = AppState.notes;
-                if (AppState.currentView === 'brain') {
-                    filteredNotes = AppState.notes.filter(n => n.visibility === 'PRIVATE' || n.isSaved);
-                } else if (AppState.currentView === 'niches') {
-                    filteredNotes = AppState.notes.filter(n => n.niche && n.visibility !== 'PRIVATE');
-                } else {
-                    filteredNotes = AppState.notes.filter(n => n.visibility !== 'PRIVATE');
-                }
-
-                if (filteredNotes.length === 0) {
-                    this.renderEmptyState();
-                    return;
-                }
-
-                const fragment = document.createDocumentFragment();
-
-                filteredNotes.forEach(note => {
-                    const article = document.createElement('article');
-                    article.className = 'note-card';
-                    
-                    let badgesHTML = '';
-                    if (note.isAiClassified) badgesHTML += `<span class="badge badge-ai">✨ Gemini AI</span>`;
-                    if (note.niche && note.visibility !== 'PRIVATE') badgesHTML += `<span class="badge badge-niche">${note.niche.icon} ${note.niche.name}</span>`;
-                    if (note.visibility === 'PRIVATE') badgesHTML += `<span class="badge badge-private">🔒 Privado</span>`;
-
-                    article.innerHTML = `
-                        <div class="note-header">
-                            <div class="avatar" style="background: ${note.author.id === 'u1' ? 'var(--accent-primary)' : '#536471'}">${note.author.avatar}</div>
-                            <div class="note-meta">
-                                <div class="note-author">${note.author.name} <span class="note-handle">@${note.author.handle} · ${note.timestamp}</span></div>
-                            </div>
-                        </div>
-                        <div class="note-content">${this.escapeHTML(note.content)}</div>
-                        ${badgesHTML ? `<div class="badges-container">${badgesHTML}</div>` : ''}
-                        <div class="note-actions">
-                            <button class="action-btn ${note.isLiked ? 'liked' : ''}" data-action="like" data-id="${note.id}">
-                                <span class="icon">${note.isLiked ? '❤️' : '🤍'}</span> ${note.likes}
-                            </button>
-                            <button class="action-btn" data-action="renote">
-                                <span class="icon">🔄</span>
-                            </button>
-                            <button class="action-btn ${note.isSaved ? 'saved' : ''}" data-action="save" data-id="${note.id}">
-                                <span class="icon">🧠</span>
-                            </button>
-                        </div>
-                    `;
-                    fragment.appendChild(article);
-                });
-
-                this.feedContainer.appendChild(fragment);
-            },
-
-            renderEmptyState() {
-                const states = {
-                    'home': { icon: '📭', title: 'Tu feed está vacío', desc: 'Sigue a otros usuarios o publica tu primera nota.' },
-                    'niches': { icon: '🎯', title: 'Sin nichos aún', desc: 'Explora temas y únete a las conversaciones que te importan.' },
-                    'brain': { icon: '🧠', title: 'Cerebro en blanco', desc: 'Guarda notas públicas o crea notas privadas para construir tu base de conocimiento.' }
-                };
-                const state = states[AppState.currentView];
-                
-                this.feedContainer.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">${state.icon}</div>
-                        <div class="empty-title">${state.title}</div>
-                        <div class="empty-desc">${state.desc}</div>
-                    </div>
-                `;
+            timeAgo(timestamp) {
+                const seconds = Math.floor((Date.now() - timestamp) / 1000);
+                if (seconds < 60) return 'Ahora';
+                const minutes = Math.floor(seconds / 60);
+                if (minutes < 60) return `${minutes}m`;
+                const hours = Math.floor(minutes / 60);
+                if (hours < 24) return `${hours}h`;
+                return `${Math.floor(hours / 24)}d`;
             },
 
             escapeHTML(str) {
@@ -735,7 +736,6 @@
             }
         };
 
-        // Boot App
         document.addEventListener('DOMContentLoaded', () => UI.init());
     </script>
 </body>
