@@ -498,4 +498,51 @@ const MockEngine = {
             { id: "u_1", handle: "alex_chen_dev", name: "Alex Chen", avatar: "https://i.pravatar.cc/150?img=1", bio: "Software Architect building scalable distributed systems.", niches: ["tech", "productivity"], followersCount: 842, followingCount: 210 },
             { id: "u_2", handle: "elena_design", name: "Elena Smith", avatar: "https://i.pravatar.cc/150?img=2", bio: "Visual storyteller and UI enthusiast.", niches: ["design", "productivity"], followersCount: 1205, followingCount: 430 },
             { id: "u_3", handle: "stoic_marcus", name: "Marcus Aurelius", avatar: "https://i.pravatar.cc/150?img=3", bio: "Applying ancient wisdom to modern chaos.", niches: ["philosophy", "productivity"], followersCount: 560, followingCount: 90 },
-            { id: "u_4", handle: "sam_river_ai", name: "Sam River", avatar: "https://
+            { id: "u_4", handle: "sam_river_ai", name: "Sam River", avatar: "https://i.pravatar.cc/150?img=4", bio: "Exploring the frontiers of Large Language Models.", niches: ["ai", "tech"], followersCount: 3400, followingCount: 510 },
+            { id: "u_5", handle: "jordan_lift", name: "Jordan Lift", avatar: "https://i.pravatar.cc/150?img=5", bio: "Daily gains and disciplined routines.", niches: ["fitness", "productivity"], followersCount: 2100, followingCount: 340 },
+            { id: "u_6", handle: "max_codes", name: "Max Code", avatar: "https://i.pravatar.cc/150?img=6", bio: "JavaScript fanatic and indie hacker.", niches: ["tech", "startups"], followersCount: 450, followingCount: 120 },
+            { id: "u_7", handle: "startup_queen", name: "Startup Queen", avatar: "https://i.pravatar.cc/150?img=7", bio: "Serial entrepreneur building in public.", niches: ["startups", "design"], followersCount: 890, followingCount: 300 },
+            { id: "u_8", handle: "phil_mind", name: "Phil Mind", avatar: "https://i.pravatar.cc/150?img=8", bio: "Seeking truth through logic and reason.", niches: ["philosophy", "tech"], followersCount: 320, followingCount: 150 },
+            { id: "u_9", handle: "fit_tech_guy", name: "Fit Tech Guy", avatar: "https://i.pravatar.cc/150?img=9", bio: "Performance tracking and wearable tech enthusiast.", niches: ["fitness", "tech"], followersCount: 760, followingCount: 280 },
+            { id: "u_10", handle: "prod_hacker", name: "Prod Hacker", avatar: "https://i.pravatar.cc/150?img=10", bio: "Systems to maximize human output.", niches: ["productivity", "ai"], followersCount: 1500, followingCount: 400 },
+            { id: "u_11", handle: "design_lead_pro", name: "Design Lead", avatar: "https://i.pravatar.cc/150?img=11", bio: "Creative direction for global brands.", niches: ["design", "startups"], followersCount: 920, followingCount: 210 },
+            { id: "u_12", handle: "logic_coder", name: "Logic Coder", avatar: "https://i.pravatar.cc/150?img=12", bio: "Where technical implementation meets logic.", niches: ["tech", "philosophy"], followersCount: 410, followingCount: 180 },
+            { id: "u_13", handle: "ai_creative", name: "AI Creative", avatar: "https://i.pravatar.cc/150?img=13", bio: "Generative art and AI-driven design.", niches: ["ai", "design"], followersCount: 1100, followingCount: 350 },
+            { id: "u_14", handle: "fit_founder", name: "Fit Founder", avatar: "https://i.pravatar.cc/150?img=14", bio: "Building empires and building muscle.", niches: ["startups", "fitness"], followersCount: 650, followingCount: 190 },
+            { id: "u_15", handle: "zen_mode_on", name: "Zen Mode", avatar: "https://i.pravatar.cc/150?img=15", bio: "Minimalism and deep work.", niches: ["productivity", "philosophy"], followersCount: 280, followingCount: 110 },
+            { id: "u_16", handle: "solo_dev_mike", name: "Solo Dev Mike", avatar: "https://i.pravatar.cc/150?img=16", bio: "Bootstrapping SaaS products.", niches: ["startups", "tech"], followersCount: 540, followingCount: 220 },
+            { id: "u_17", handle: "bio_hacker_ai", name: "Bio Hacker", avatar: "https://i.pravatar.cc/150?img=17", bio: "Optimizing biology with machine learning.", niches: ["ai", "fitness"], followersCount: 890, followingCount: 410 },
+            { id: "u_18", handle: "design_math", name: "Design Math", avatar: "https://i.pravatar.cc/150?img=18", bio: "Exploring the geometry of beautiful interfaces.", niches: ["design", "philosophy"], followersCount: 430, followingCount: 120 },
+            { id: "u_19", handle: "founder_flow", name: "Founder Flow", avatar: "https://i.pravatar.cc/150?img=19", bio: "Scaling from 0 to 1 without burnout.", niches: ["startups", "productivity"], followersCount: 1400, followingCount: 380 },
+            { id: "u_20", handle: "tech_athlete", name: "Tech Athlete", avatar: "https://i.pravatar.cc/150?img=20", bio: "Code and cardio. Every single day.", niches: ["tech", "fitness"], followersCount: 310, followingCount: 140 }
+        ];
+        users.forEach(u => { AppState.users[u.id] = u; });
+
+        // 3. Generate 80 Notes
+        const texts = ["Clean code is a love letter to your future self.", "Build in public, learn in public.", "AI is a tool, not a replacement.", "Design is thinking made visual.", "Consistency > Intensity."];
+        for (let i = 1; i <= 80; i++) {
+            const authorId = `u_${Math.floor(Math.random() * 20) + 1}`;
+            const nIds = Object.keys(AppState.niches);
+            const nId = Math.random() > 0.4 ? nIds[Math.floor(Math.random() * nIds.length)] : null;
+            const id = `n_${i}`;
+            AppState.notes[id] = {
+                id, authorId,
+                content: texts[Math.floor(Math.random() * texts.length)],
+                visibility: Math.random() > 0.8 ? 'PRIVATE' : (Math.random() > 0.8 ? 'NICHE' : 'PUBLIC'),
+                nicheId: nId,
+                likesCount: Math.floor(Math.random() * 30),
+                renotesCount: Math.floor(Math.random() * 5),
+                timestamp: Date.now() - Math.floor(Math.random() * 50000000),
+                isAiClassified: Math.random() > 0.7
+            };
+            if (authorId === 'u_me') AppState.currentUser.ownNotes.add(id);
+        }
+    }
+};
+
+// --- 6. APP INITIALIZATION ---
+document.addEventListener('DOMContentLoaded', () => App.init());
+
+</script>
+</body>
+</html>
