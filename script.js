@@ -1,21 +1,18 @@
 /**
- * NOTEBING - CORE ENGINE (Modular Architecture)
+ * NOTEBING - CORE ENGINE v3
  * 
- * Architecture Pattern: 
- * - State: Single Source of Truth (Normalized)
- * - API: Data Layer (Simulated)
- * - Views: Presentation Layer (Modularized)
- * - Router: Navigation Layer
- * - App: Orchestrator
+ * Cambios recientes:
+ * - Lucide Icons integrados (0% emojis, 100% SVG minimalista).
+ * - CSS Grid Layout (Notion / X style compliance).
  */
 
 /* ==========================================================================
-   1. STATE MANAGEMENT (Normalized)
+   1. STATE MANAGEMENT
    ========================================================================== */
 const AppState = {
     currentView: 'home',
     isPublishing: false,
-    currentUser: { 
+    currentUser: {
         id: 'u_me', handle: 'tu_usuario', name: 'Tú', avatar: 'T',
         bio: "Frontend Architect & Product Thinker 🚀",
         followersCount: 342, followingCount: 128,
@@ -23,9 +20,9 @@ const AppState = {
         followedUsers: new Set(), followedNiches: new Set(),
         ownNotes: new Set()
     },
-    users: {},   // { id: { user_obj } }
-    niches: {},  // { id: { niche_obj } }
-    notes: {}    // { id: { note_obj } }
+    users: {},
+    niches: {},
+    notes: {}
 };
 
 /* ==========================================================================
@@ -37,53 +34,114 @@ const ApiService = {
             const id = `n_${Date.now()}`;
             const note = {
                 id, authorId: 'u_me', content, visibility, nicheId,
-                likesCount: 0, renotesCount: 0, timestamp: Date.now(), isAiClassified: false
+                likesCount: 0, renotesCount: 0,
+                timestamp: Date.now(), isAiClassified: false
             };
             AppState.notes[id] = note;
             AppState.currentUser.ownNotes.add(id);
             res(note);
         }, 800));
     },
+
     async classify(content) {
         return new Promise(res => setTimeout(() => {
             const text = content.toLowerCase();
-            if (text.includes('code') || text.includes('app')) res('tech');
-            else if (text.includes('startup') || text.includes('mvp')) res('startups');
-            else res('philosophy');
+            if (text.match(/\b(code|app|js|css|html|dev|software|api)\b/)) res('tech');
+            else if (text.match(/\b(startup|mvp|saas|founder|build|product)\b/)) res('startups');
+            else if (text.match(/\b(ai|llm|model|gpt|gemini|neural)\b/)) res('ai');
+            else if (text.match(/\b(design|ui|ux|color|font|visual)\b/)) res('design');
+            else if (text.match(/\b(god|mind|purpose|truth|meaning|stoic)\b/)) res('philosophy');
+            else if (text.match(/\b(gym|lift|run|food|health|diet|fitness)\b/)) res('fitness');
+            else res('productivity');
         }, 1200));
     }
 };
 
 /* ==========================================================================
-   3. VIEW MODULES (Scalable Presentation)
+   3. MODAL SYSTEM
    ========================================================================== */
-// Cada objeto dentro de Views es un módulo independiente. 
-// Para añadir una pestaña nueva, solo creas un nuevo objeto aquí.
+const Modal = {
+    _resolve: null,
+    _el: {
+        overlay:   () => document.getElementById('modal-overlay'),
+        message:   () => document.getElementById('modal-message'),
+        inputWrap: () => document.getElementById('modal-input-wrap'),
+        input:     () => document.getElementById('modal-input'),
+        confirm:   () => document.getElementById('modal-confirm'),
+        cancel:    () => document.getElementById('modal-cancel'),
+    },
+    init() {
+        this._el.confirm().addEventListener('click', () => this._close(true));
+        this._el.cancel().addEventListener('click',  () => this._close(false));
+        this._el.overlay().addEventListener('click', (e) => {
+            if (e.target === this._el.overlay()) this._close(false);
+        });
+    },
+    confirm(message, danger = true) {
+        this._el.message().innerHTML = message;
+        this._el.inputWrap().classList.add('hidden');
+        this._el.confirm().textContent = 'Eliminar';
+        this._el.confirm().className = 'btn-primary' + (danger ? ' btn--danger' : '');
+        this._el.overlay().classList.remove('hidden');
+        return new Promise(res => { this._resolve = res; });
+    },
+    prompt(message, currentValue = '') {
+        this._el.message().innerHTML = message;
+        this._el.inputWrap().classList.remove('hidden');
+        this._el.input().value = currentValue;
+        this._el.confirm().textContent = 'Guardar';
+        this._el.confirm().className = 'btn-primary';
+        this._el.overlay().classList.remove('hidden');
+        setTimeout(() => this._el.input().focus(), 50);
+        return new Promise(res => { this._resolve = res; });
+    },
+    _close(confirmed) {
+        const value = confirmed
+            ? (this._el.inputWrap().classList.contains('hidden') ? true : this._el.input().value.trim())
+            : null;
+        this._el.overlay().classList.add('hidden');
+        this._el.input().value = '';
+        if (this._resolve) this._resolve(value);
+        this._resolve = null;
+    }
+};
+
+/* ==========================================================================
+   4. VIEW MODULES
+   ========================================================================== */
 const Views = {
     home: {
         title: "Inicio",
         render: () => `
-            <div class="composer p-4 border-b border-[var(--border-color)] flex gap-3">
-                <div class="avatar w-10 h-10 flex items-center justify-center text-sm font-bold text-white bg-[var(--accent-primary)] rounded-full">T</div>
-                <div class="flex-1">
-                    <textarea id="note-input" class="w-full text-lg bg-transparent border-none resize-none outline-none" placeholder="¿Qué estás aprendiendo?"></textarea>
-                    <div class="flex justify-between items-center mt-2 pt-2 border-t border-[var(--border-color)]">
-                        <div class="flex gap-2">
-                            <select id="note-visibility" class="text-xs font-semibold bg-[var(--bg-base)] p-1 rounded-full border border-[var(--border-color)]">
-                                <option value="PUBLIC">🌍 Público</option>
-                                <option value="NICHE">🎯 Nicho</option>
-                                <option value="PRIVATE">🔒 Privado</option>
-                            </select>
-                            <select id="note-niche" class="text-xs font-semibold bg-[var(--bg-base)] p-1 rounded-full border border-[var(--border-color)]">
-                                <option value="">✨ IA Auto</option>
-                                ${Object.values(AppState.niches).map(n => `<option value="${n.id}">${n.icon} ${n.name}</option>`).join('')}
-                            </select>
+            <div class="composer">
+                <div class="avatar avatar--md">T</div>
+                <div class="composer-body">
+                    <textarea id="note-input" placeholder="¿Qué estás aprendiendo?"></textarea>
+                    <div class="composer-actions">
+                        <div class="select-group">
+                            <div class="pill-select-wrapper">
+                                <i data-lucide="globe" class="select-icon"></i>
+                                <select id="note-visibility" class="pill-select" style="padding-left: 28px;">
+                                    <option value="PUBLIC">Público</option>
+                                    <option value="NICHE">Nicho</option>
+                                    <option value="PRIVATE">Privado</option>
+                                </select>
+                            </div>
+                            <div class="pill-select-wrapper">
+                                <i data-lucide="sparkles" class="select-icon"></i>
+                                <select id="note-niche" class="pill-select" style="padding-left: 28px;">
+                                    <option value="">IA Automático</option>
+                                    ${Object.values(AppState.niches).map(n =>
+                                        `<option value="${n.id}">${App.escapeHTML(n.name)}</option>`
+                                    ).join('')}
+                                </select>
+                            </div>
                         </div>
-                        <button id="btn-publish" class="bg-[var(--accent-primary)] text-white px-5 py-1.5 rounded-full font-bold text-sm">Postear</button>
+                        <button id="btn-publish" class="btn-primary">Postear</button>
                     </div>
                 </div>
             </div>
-            <div id="feed-container" class="flex flex-col"></div>
+            <div id="feed-container" class="feed-container"></div>
         `,
         onMount: () => {
             App.bindComposer();
@@ -94,19 +152,21 @@ const Views = {
     niches: {
         title: "Tus Nichos",
         render: () => `
-            <div class="p-6">
-                <h2 class="text-2xl font-extrabold mb-6">Explorar Nichos</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div style="padding: 24px;">
+                <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 24px;">Explorar Nichos</h2>
+                <div class="niches-grid">
                     ${Object.values(AppState.niches).map(n => `
-                        <div class="widget p-5 rounded-2xl border border-[var(--border-color)] flex items-center justify-between hover:bg-[var(--bg-surface-hover)] transition-all cursor-pointer" onclick="App.handleFollowNiche('${n.id}')">
-                            <div class="flex items-center gap-4">
-                                <span class="text-3xl">${n.icon}</span>
+                        <div class="widget niche-card" data-niche-id="${n.id}" style="margin-bottom: 0;">
+                            <div style="display: flex; align-items: center; gap: 16px; flex: 1;">
+                                <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--accent-alpha); color: var(--accent-primary); display: flex; align-items: center; justify-content: center;">
+                                    <i data-lucide="${n.icon}" style="width: 24px; height: 24px;"></i>
+                                </div>
                                 <div>
-                                    <div class="font-bold">${n.name}</div>
-                                    <div class="text-xs text-[var(--text-secondary)]">${n.followersCount.toLocaleString()} notas</div>
+                                    <div style="font-weight: 700;">${App.escapeHTML(n.name)}</div>
+                                    <div style="font-size: 13px; color: var(--text-secondary);">${n.followersCount.toLocaleString()} notas</div>
                                 </div>
                             </div>
-                            <button class="btn-follow text-xs font-bold ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''}" data-type="niche" data-id="${n.id}">
+                            <button class="btn-follow ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''}" data-type="niche" data-id="${n.id}">
                                 ${AppState.currentUser.followedNiches.has(n.id) ? 'Siguiendo' : 'Seguir'}
                             </button>
                         </div>
@@ -120,11 +180,14 @@ const Views = {
     brain: {
         title: "Segundo Cerebro",
         render: () => `
-            <div class="p-6">
-                <h2 class="text-2xl font-extrabold mb-2">Tu Segundo Cerebro</h2>
-                <p class="text-[var(--text-secondary)] text-sm mb-6">Tus notas privadas y guardadas.</p>
-                <div id="feed-container" class="flex flex-col"></div>
+            <div style="padding: 24px 24px 8px;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                    <i data-lucide="brain" style="width: 28px; height: 28px; color: var(--accent-primary);"></i>
+                    <h2 style="font-size: 24px; font-weight: 800;">Tu Segundo Cerebro</h2>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 15px; margin-bottom: 16px;">Tus notas privadas y todo lo que has guardado como conocimiento.</p>
             </div>
+            <div id="feed-container" class="feed-container"></div>
         `,
         onMount: () => App.renderFeed()
     },
@@ -134,19 +197,25 @@ const Views = {
         render: () => {
             const u = AppState.currentUser;
             return `
-                <div class="p-6">
-                    <div class="flex flex-col items-center text-center mb-8">
-                        <div class="avatar w-24 h-24 text-3xl mb-4">${u.avatar}</div>
-                        <h2 class="text-2xl font-extrabold">${u.name}</h2>
-                        <p class="text-[var(--text-secondary)]">@${u.handle}</p>
-                        <p class="mt-4 text-sm max-w-xs">${u.bio}</p>
-                        <div class="flex gap-8 mt-6">
-                            <div class="text-center"><div class="font-bold">${u.followingCount}</div><div class="text-xs text-[var(--text-secondary)]">Siguiendo</div></div>
-                            <div class="text-center"><div class="font-bold">${u.followersCount}</div><div class="text-xs text-[var(--text-secondary)]">Seguidores</div></div>
+                <div style="padding: 32px 24px;">
+                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 32px;">
+                        <div class="avatar avatar--lg" style="margin-bottom: 16px;">${App.escapeHTML(u.avatar)}</div>
+                        <h2 style="font-size: 24px; font-weight: 800;">${App.escapeHTML(u.name)}</h2>
+                        <p style="color: var(--text-secondary);">@${App.escapeHTML(u.handle)}</p>
+                        <p style="margin-top: 16px; font-size: 15px; max-width: 320px;">${App.escapeHTML(u.bio)}</p>
+                        <div style="display: flex; gap: 40px; margin-top: 24px; background: var(--bg-surface-hover); padding: 16px 32px; border-radius: var(--radius-lg);">
+                            <div style="text-align: center;">
+                                <div style="font-weight: 800; font-size: 20px;">${u.followingCount}</div>
+                                <div style="font-size: 13px; font-weight: 500; color: var(--text-secondary);">Siguiendo</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-weight: 800; font-size: 20px;">${u.followersCount}</div>
+                                <div style="font-size: 13px; font-weight: 500; color: var(--text-secondary);">Seguidores</div>
+                            </div>
                         </div>
                     </div>
-                    <h3 class="font-bold text-lg mb-4">Mis Notas</h3>
-                    <div id="feed-container" class="flex flex-col"></div>
+                    <h3 style="font-weight: 800; font-size: 18px; margin-bottom: 16px; padding: 0 16px;">Mis Notas</h3>
+                    <div id="feed-container" class="feed-container"></div>
                 </div>
             `;
         },
@@ -155,178 +224,220 @@ const Views = {
 };
 
 /* ==========================================================================
-   4. ROUTER (Navigation Layer)
+   5. ROUTER
    ========================================================================== */
 const Router = {
     navigate(viewName) {
         if (!Views[viewName]) return;
-        
         AppState.currentView = viewName;
-        
-        // 1. Update UI State (Nav active classes)
-        document.querySelectorAll('.nav-item, .nav-item-desktop').forEach(el => {
+
+        document.querySelectorAll('.nav-item').forEach(el => {
             el.classList.toggle('active', el.dataset.view === viewName);
         });
 
-        // 2. Update Header
         document.getElementById('view-title').textContent = Views[viewName].title;
 
-        // 3. Render View
         const container = document.getElementById('view-container');
         container.innerHTML = Views[viewName].render();
 
-        // 4. Execute View Lifecycle (onMount)
         if (Views[viewName].onMount) {
             Views[viewName].onMount();
         }
 
-        // 5. Update Sidebars (Desktop)
         App.renderSidebars();
+        App.initIcons(); // Instanciar SVG de Lucide
     }
 };
 
 /* ==========================================================================
-   5. APP ORCHESTRATOR (The Controller)
+   6. APP CONTROLLER
    ========================================================================== */
 const App = {
     init() {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            const toggleBtn = document.getElementById('theme-toggle');
+            if(savedTheme === 'dark' && toggleBtn) {
+                // Se invierten manual por si no actua el CSS
+                toggleBtn.querySelector('.theme-icon-dark').style.display = 'none';
+                toggleBtn.querySelector('.theme-icon-light').style.display = 'block';
+            }
+        }
+
         MockEngine.generate();
-        this.cacheDOM();
+        Modal.init();
         this.bindEvents();
-        this.render();
+        Router.navigate(AppState.currentView);
+        this.initIcons();
     },
 
-    cacheDOM() {
-        this.container = document.getElementById('view-container');
-        this.feedContainer = document.getElementById('feed-container');
-        this.navItems = document.querySelectorAll('.nav-item, .nav-item-desktop');
-        this.toast = document.getElementById('toast');
-        this.themeBtn = document.getElementById('theme-toggle');
+    get feedContainer() { return document.getElementById('feed-container'); },
+
+    initIcons() {
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
     },
 
     bindEvents() {
-        // Navigation
-        this.navItems.forEach(btn => {
+        document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                Router.navigate(btn.dataset.view);
+                // Prevenir interferencia en el fab click
+                if(!e.target.closest('.btn-compose-mobile')) {
+                    e.preventDefault();
+                    Router.navigate(btn.dataset.view);
+                }
             });
         });
 
-        // Theme
-        this.themeBtn.addEventListener('click', () => this.toggleTheme());
+        document.getElementById('theme-toggle').addEventListener('click', () => this.toggleTheme());
 
-        // Global Event Delegation (High Performance)
         document.addEventListener('click', (e) => {
-            const btn = e.target.closest('.action-btn, .opt-btn, .btn-follow, .btn-primary');
+            const btn = e.target.closest('.action-btn, .opt-btn, .btn-follow, #btn-publish');
             if (!btn) return;
 
             const { action, id, type } = btn.dataset;
-            if (action === 'like') this.handleLike(id, btn);
-            if (action === 'save') this.handleSave(id, btn);
+            if (action === 'like')   this.handleLike(id, btn);
+            if (action === 'save')   this.handleSave(id, btn);
             if (action === 'delete') this.handleDelete(id);
-            if (action === 'edit') this.handleEdit(id);
+            if (action === 'edit')   this.handleEdit(id);
             if (action === 'renote') this.handleRenote(id, btn);
+
             if (btn.classList.contains('btn-follow')) {
-                if (type === 'user') this.handleFollowUser(id, btn);
+                if (type === 'user')  this.handleFollowUser(id, btn);
                 if (type === 'niche') this.handleFollowNiche(id, btn);
             }
+
             if (btn.id === 'btn-publish') this.handlePublish();
         });
     },
 
-    // --- VIEW LOGIC ---
-    render() {
-        Router.navigate(AppState.currentView);
-    },
-
     bindComposer() {
         const btn = document.getElementById('btn-publish');
-        if (btn) btn.onclick = () => this.handlePublish();
+        if (btn) btn.addEventListener('click', () => this.handlePublish());
     },
 
     focusComposer() {
         if (AppState.currentView !== 'home') Router.navigate('home');
-        setTimeout(() => document.getElementById('note-input').focus(), 100);
+        setTimeout(() => {
+            const input = document.getElementById('note-input');
+            if (input) {
+                input.focus();
+                // scroll to top en mobile
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }, 150);
     },
 
     renderFeed() {
-        this.feedContainer.innerHTML = '';
-        let notes = Object.values(AppState.notes).sort((a,b) => b.timestamp - a.timestamp);
+        const container = this.feedContainer;
+        if (!container) return;
+        container.innerHTML = '';
 
-        // Filtering Logic
+        let notes = Object.values(AppState.notes).sort((a, b) => b.timestamp - a.timestamp);
+
         if (AppState.currentView === 'brain') {
             notes = notes.filter(n => n.visibility === 'PRIVATE' || AppState.currentUser.savedNotes.has(n.id));
         } else if (AppState.currentView === 'profile') {
             notes = notes.filter(n => n.authorId === AppState.currentUser.id);
         } else if (AppState.currentView === 'home') {
-            notes = notes.filter(n => 
-                n.visibility !== 'PRIVATE' && 
-                (AppState.currentUser.followedUsers.has(n.authorId) || 
-                 AppState.currentUser.followedNiches.has(n.nicheId) || 
+            notes = notes.filter(n =>
+                n.visibility !== 'PRIVATE' &&
+                (AppState.currentUser.followedUsers.has(n.authorId) ||
+                 AppState.currentUser.followedNiches.has(n.nicheId) ||
                  n.authorId === AppState.currentUser.id)
             );
         }
 
         if (notes.length === 0) {
-            this.feedContainer.innerHTML = `<div class="p-20 text-center opacity-50">No hay contenido aquí.</div>`;
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i data-lucide="layers" class="empty-icon text-secondary"></i>
+                    <div class="empty-title">Nada por aquí</div>
+                    <div class="empty-desc">Sigue a usuarios o explora nichos para construir tu feed personalizado.</div>
+                </div>
+            `;
+            this.initIcons();
             return;
         }
 
         const frag = document.createDocumentFragment();
         notes.forEach(note => {
-            const author = AppState.users[note.authorId];
-            const niche = note.nicheId ? AppState.niches[note.nicheId] : null;
-            const isOwn = note.authorId === AppState.currentUser.id;
+            const author = AppState.users[note.authorId] || AppState.currentUser;
+            const niche  = note.nicheId ? AppState.niches[note.nicheId] : null;
+            const isOwn  = note.authorId === AppState.currentUser.id;
+            const isLiked   = AppState.currentUser.likedNotes.has(note.id);
+            const isSaved   = AppState.currentUser.savedNotes.has(note.id);
+            const isRenoted = AppState.currentUser.renotedNotes.has(note.id);
+
+            const avatarContent = author.avatar && author.avatar.startsWith('http')
+                ? `<img src="${author.avatar}" alt="${App.escapeHTML(author.name)}" loading="lazy">`
+                : App.escapeHTML(author.avatar || '?');
 
             const div = document.createElement('div');
-            div.className = 'note-card p-4 border-b border-[var(--border-color)] animate-fadeIn';
+            div.className = 'note-card';
             div.innerHTML = `
-                <div class="flex justify-between items-start mb-2">
-                    <div class="flex gap-3">
-                        <div class="avatar w-10 h-10 flex items-center justify-center text-sm font-bold text-white bg-indigo-500">${author.avatar}</div>
-                        <div>
-                            <div class="font-bold text-sm">${author.name} <span class="text-[var(--text-secondary)] font-normal text-xs">@${author.handle}</span></div>
-                            <div class="text-[10px] text-[var(--text-secondary)]">${this.timeAgo(note.timestamp)}</div>
+                <div class="note-header">
+                    <div class="note-author-wrap">
+                        <div class="avatar avatar--md">${avatarContent}</div>
+                        <div class="note-meta">
+                            <span class="note-author">${App.escapeHTML(author.name)}
+                                <span class="note-handle">@${App.escapeHTML(author.handle)}</span>
+                            </span>
+                            <span class="note-time">${this.timeAgo(note.timestamp)}</span>
                         </div>
                     </div>
                     ${isOwn ? `
-                        <div class="flex gap-1">
-                            <button class="opt-btn edit p-1" data-action="edit" data-id="${note.id}">✏️</button>
-                            <button class="opt-btn p-1" data-action="delete" data-id="${note.id}">🗑️</button>
+                        <div class="note-options">
+                            <button class="opt-btn edit" data-action="edit" data-id="${note.id}" title="Editar nota">
+                               <i data-lucide="pencil" style="width: 16px; height: 16px;"></i>
+                            </button>
+                            <button class="opt-btn" data-action="delete" data-id="${note.id}" title="Eliminar nota">
+                               <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                            </button>
                         </div>
                     ` : ''}
                 </div>
-                <div class="text-sm leading-relaxed ml-14 mb-3">${note.content}</div>
-                <div class="ml-14 flex flex-wrap gap-2 mb-3">
-                    ${note.isAiClassified ? `<span class="badge badge-ai text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600">✨ Gemini AI</span>` : ''}
-                    ${niche ? `<span class="badge text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--bg-base)] text-[var(--text-secondary)] border border-[var(--border-color)]">${niche.icon} ${niche.name}</span>` : ''}
-                    ${note.visibility === 'PRIVATE' ? `<span class="badge text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">🔒 Privado</span>` : ''}
-                </div>
-                <div class="flex gap-6 ml-14 text-[var(--text-secondary)] text-xs font-semibold">
-                    <button class="action-btn flex items-center gap-1 ${AppState.currentUser.likedNotes.has(note.id) ? 'liked' : ''}" data-action="like" data-id="${note.id}">
-                        <span class="icon">${AppState.currentUser.likedNotes.has(note.id) ? '❤️' : '🤍'}</span> ${note.likesCount}
-                    </button>
-                    <button class="action-btn flex items-center gap-1 ${AppState.currentUser.renotedNotes.has(note.id) ? 'renoted' : ''}" data-action="renote" data-id="${note.id}">
-                        <span class="icon">🔄</span> ${note.renotesCount}
-                    </button>
-                    <button class="action-btn flex items-center gap-1 ${AppState.currentUser.savedNotes.has(note.id) ? 'saved' : ''}" data-action="save" data-id="${note.id}">
-                        <span class="icon">🧠</span>
-                    </button>
+                <div class="note-body">
+                    <div class="note-content">${App.escapeHTML(note.content)}</div>
+                    <div class="badges-container">
+                        ${note.isAiClassified ? `<span class="badge badge-ai"><i data-lucide="sparkles"></i> AI Suggested</span>` : ''}
+                        ${niche ? `<span class="badge badge-niche"><i data-lucide="${niche.icon}"></i> ${App.escapeHTML(niche.name)}</span>` : ''}
+                        ${note.visibility === 'PRIVATE' ? `<span class="badge badge-private"><i data-lucide="lock"></i> Privado</span>` : ''}
+                    </div>
+                    <div class="note-actions">
+                        <button class="action-btn ${isLiked ? 'liked' : ''}" data-action="like" data-id="${note.id}" aria-label="Me gusta">
+                            <i data-lucide="heart" class="action-icon"></i>
+                            <span class="count-like">${note.likesCount}</span>
+                        </button>
+                        <button class="action-btn ${isRenoted ? 'renoted' : ''}" data-action="renote" data-id="${note.id}" aria-label="Renotear">
+                            <i data-lucide="repeat-2" class="action-icon"></i>
+                            <span class="count-renote">${note.renotesCount}</span>
+                        </button>
+                        <button class="action-btn ${isSaved ? 'saved' : ''}" data-action="save" data-id="${note.id}" aria-label="Guardar">
+                            <i data-lucide="bookmark" class="action-icon"></i>
+                        </button>
+                    </div>
                 </div>
             `;
             frag.appendChild(div);
         });
-        this.feedContainer.appendChild(frag);
+
+        container.appendChild(frag);
+        this.initIcons();
     },
 
     renderSidebars() {
         const nicheList = document.getElementById('trending-niches');
         if (nicheList) {
             nicheList.innerHTML = Object.values(AppState.niches).slice(0, 5).map(n => `
-                <div class="flex justify-between items-center">
-                    <div class="text-sm font-medium">${n.icon} ${n.name}</div>
-                    <button class="btn-follow text-xs font-bold ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''}" data-type="niche" data-id="${n.id}">
+                <div class="trend-item">
+                    <div class="trend-info">
+                        <strong><i data-lucide="${n.icon}" style="width: 16px; height: 16px; color: var(--accent-primary);"></i> ${App.escapeHTML(n.name)}</strong>
+                        <span>${n.followersCount.toLocaleString()} contribuciones</span>
+                    </div>
+                    <button class="btn-follow ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''}" data-type="niche" data-id="${n.id}">
                         ${AppState.currentUser.followedNiches.has(n.id) ? 'Siguiendo' : 'Seguir'}
                     </button>
                 </div>
@@ -337,138 +448,213 @@ const App = {
         if (userList) {
             userList.innerHTML = Object.values(AppState.users)
                 .filter(u => u.id !== 'u_me' && !AppState.currentUser.followedUsers.has(u.id))
-                .slice(0, 3).map(u => `
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-2">
-                            <div class="avatar w-8 h-8 text-[10px]">${u.avatar}</div>
-                            <div class="text-sm font-bold leading-tight">${u.name}</div>
+                .slice(0, 4)
+                .map(u => {
+                    const av = u.avatar && u.avatar.startsWith('http')
+                        ? `<img src="${u.avatar}" alt="${App.escapeHTML(u.name)}" loading="lazy">`
+                        : App.escapeHTML(u.avatar || '?');
+                    return `
+                        <div class="trend-item" style="border: none; padding: 10px 0;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="avatar avatar--sm">${av}</div>
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 700; line-height: 1.2;">${App.escapeHTML(u.name)}</div>
+                                    <div style="font-size: 13px; color: var(--text-secondary);">@${App.escapeHTML(u.handle)}</div>
+                                </div>
+                            </div>
+                            <button class="btn-follow ${AppState.currentUser.followedUsers.has(u.id) ? 'following' : ''}" data-type="user" data-id="${u.id}">
+                                ${AppState.currentUser.followedUsers.has(u.id) ? 'Siguiendo' : 'Seguir'}
+                            </button>
                         </div>
-                        <button class="btn-follow text-xs font-bold ${AppState.currentUser.followedUsers.has(u.id) ? 'following' : ''}" data-type="user" data-id="${u.id}">
-                            ${AppState.currentUser.followedUsers.has(u.id) ? 'Siguiendo' : 'Seguir'}
-                        </button>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
         }
+        this.initIcons();
     },
 
     // --- ACTIONS ---
     async handlePublish() {
-        const content = document.getElementById('note-input').value.trim();
-        const visibility = document.getElementById('note-visibility').value;
-        const nicheId = document.getElementById('note-niche').value;
+        const input      = document.getElementById('note-input');
+        const visibility = document.getElementById('note-visibility');
+        const nicheEl    = document.getElementById('note-niche');
 
+        if (!input) return;
+        const content = input.value.trim();
         if (!content || AppState.isPublishing) return;
 
+        const publishBtn = document.getElementById('btn-publish');
         AppState.isPublishing = true;
-        this.showToast("Publicando...");
+        if (publishBtn) publishBtn.disabled = true;
+        this.showToast("<i data-lucide='loader'></i> Publicando...");
 
         try {
-            let finalNiche = nicheId || null;
+            let finalNiche = nicheEl ? nicheEl.value : '';
             let isAi = false;
-            if (!nicheId && visibility !== 'PRIVATE') {
+            if (!finalNiche && visibility && visibility.value !== 'PRIVATE') {
                 finalNiche = await ApiService.classify(content);
                 isAi = true;
             }
-            const note = await ApiService.publish(content, visibility, finalNiche);
+
+            const note = await ApiService.publish(content, visibility ? visibility.value : 'PUBLIC', finalNiche || null);
             note.isAiClassified = isAi;
-            this.showToast("✅ Publicado");
-            this.render();
+            this.showToast("<i data-lucide='check-circle'></i> Publicado con éxito");
+
+            if (AppState.currentView === 'home') {
+                this.renderFeed();
+                if (input) input.value = '';
+            }
         } catch (e) {
-            this.showToast("❌ Error");
+            this.showToast("<i data-lucide='alert-triangle'></i> Error al publicar");
         } finally {
             AppState.isPublishing = false;
+            if (publishBtn) publishBtn.disabled = false;
         }
     },
 
     handleLike(id, btn) {
         const note = AppState.notes[id];
+        if (!note) return;
+        
         const isLiked = AppState.currentUser.likedNotes.has(id);
         if (isLiked) {
             AppState.currentUser.likedNotes.delete(id);
-            note.likesCount--;
+            note.likesCount = Math.max(0, note.likesCount - 1);
         } else {
             AppState.currentUser.likedNotes.add(id);
             note.likesCount++;
         }
         btn.classList.toggle('liked', !isLiked);
-        btn.innerHTML = `<span class="icon">${isLiked ? '🤍' : '❤️'}</span> ${note.likesCount}`;
+        // El icono de Lucide cambia de color usando CSS .liked .lucide { fill: var(--danger-color); stroke: ...}
+        const count = btn.querySelector('.count-like');
+        if (count) count.textContent = note.likesCount;
     },
 
     handleSave(id, btn) {
         const isSaved = AppState.currentUser.savedNotes.has(id);
         if (isSaved) AppState.currentUser.savedNotes.delete(id);
-        else AppState.currentUser.savedNotes.add(id);
+        else         AppState.currentUser.savedNotes.add(id);
+        
         btn.classList.toggle('saved', !isSaved);
-        this.showToast(!isSaved ? "🧠 Guardado en Cerebro" : "Removido");
-        this.render();
+        this.showToast(
+            !isSaved ? "<i data-lucide='bookmark-check'></i> Guardado en Segundo Cerebro" : "<i data-lucide='bookmark-minus'></i> Removido"
+        );
     },
 
     handleRenote(id, btn) {
         const note = AppState.notes[id];
+        if (!note) return;
         const isRenoted = AppState.currentUser.renotedNotes.has(id);
-        if (isRenoted) AppState.currentUser.renotedNotes.delete(id);
-        else AppState.currentUser.renotedNotes.add(id);
+        if (isRenoted) {
+            AppState.currentUser.renotedNotes.delete(id);
+            note.renotesCount = Math.max(0, note.renotesCount - 1);
+        } else {
+            AppState.currentUser.renotedNotes.add(id);
+            note.renotesCount++;
+        }
         btn.classList.toggle('renoted', !isRenoted);
-        btn.innerHTML = `<span class="icon">🔄</span> ${isRenoted ? note.renotesCount - 1 : note.renotesCount + 1}`;
+        const count = btn.querySelector('.count-renote');
+        if (count) count.textContent = note.renotesCount;
+        
+        this.showToast(!isRenoted ? "<i data-lucide='repeat-2'></i> Nota compartida" : "<i data-lucide='undo-2'></i> Deshecho");
     },
 
-    handleDelete(id) {
-        if(confirm("¿Eliminar nota?")) {
-            delete AppState.notes[id];
-            this.showToast("🗑️ Eliminada");
-            this.render();
+    async handleDelete(id) {
+        const confirmed = await Modal.confirm('<div style="display:flex; align-items:center; gap:8px;"><i data-lucide="alert-triangle" style="color:var(--danger-color)"></i> ¿Eliminar esta nota de manera permanente?</div>', true);
+        if (!confirmed) return;
+        delete AppState.notes[id];
+        AppState.currentUser.ownNotes.delete(id);
+        this.showToast("<i data-lucide='trash'></i> Nota eliminada");
+        
+        const card = document.querySelector(`[data-action="delete"][data-id="${id}"]`)?.closest('.note-card');
+        if (card) {
+            card.style.animation = 'fadeOutCard 0.25s ease forwards';
+            setTimeout(() => card.remove(), 250);
         }
     },
 
-    handleEdit(id) {
+    async handleEdit(id) {
         const note = AppState.notes[id];
-        const text = prompt("Editar nota:", note.content);
-        if (text) {
-            note.content = text;
-            this.showToast("✏️ Actualizada");
-            this.render();
+        if (!note) return;
+        const newText = await Modal.prompt('<div style="display:flex; align-items:center; gap:8px;"><i data-lucide="edit-3"></i> Editar nota atómica</div>', note.content);
+        if (!newText || newText === note.content) return;
+        
+        note.content = newText;
+        this.showToast("<i data-lucide='check'></i> Actualizada");
+        
+        const card = document.querySelector(`[data-action="edit"][data-id="${id}"]`)?.closest('.note-card');
+        if (card) {
+            const contentEl = card.querySelector('.note-content');
+            if (contentEl) contentEl.textContent = note.content;
         }
     },
 
     handleFollowUser(userId, btn) {
         const isFollowing = AppState.currentUser.followedUsers.has(userId);
-        if (isFollowing) AppState.currentUser.followedUsers.delete(userId);
-        else AppState.currentUser.followedUsers.add(userId);
+        if (isFollowing) {
+            AppState.currentUser.followedUsers.delete(userId);
+            AppState.currentUser.followingCount = Math.max(0, AppState.currentUser.followingCount - 1);
+        } else {
+            AppState.currentUser.followedUsers.add(userId);
+            AppState.currentUser.followingCount++;
+        }
         btn.textContent = isFollowing ? 'Seguir' : 'Siguiendo';
         btn.classList.toggle('following', !isFollowing);
-        this.render();
+        this.showToast(isFollowing ? '<i data-lucide="user-minus"></i> Dejaste de seguir al perfil' : '<i data-lucide="user-plus"></i> Siguiendo nuevo perfil');
+        this.renderSidebars();
+        if (AppState.currentView === 'home') this.renderFeed();
     },
 
     handleFollowNiche(nicheId, btn) {
         const isFollowing = AppState.currentUser.followedNiches.has(nicheId);
         if (isFollowing) AppState.currentUser.followedNiches.delete(nicheId);
-        else AppState.currentUser.followedNiches.add(nicheId);
-        btn.textContent = isFollowing ? 'Seguir' : 'Siguiendo';
-        btn.classList.toggle('following', !isFollowing);
-        this.render();
+        else             AppState.currentUser.followedNiches.add(nicheId);
+        
+        document.querySelectorAll(`.btn-follow[data-type="niche"][data-id="${nicheId}"]`).forEach(b => {
+            b.textContent = isFollowing ? 'Seguir' : 'Siguiendo';
+            b.classList.toggle('following', !isFollowing);
+        });
+        
+        this.showToast(isFollowing ? '<i data-lucide="minus"></i> Dejaste el nicho' : '<i data-lucide="check"></i> Te uniste al nicho');
+        
+        this.renderSidebars();
+        if (AppState.currentView === 'home') this.renderFeed();
     },
 
     toggleTheme() {
-        const theme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
+        const doc = document.documentElement;
+        const current = doc.getAttribute('data-theme');
+        const next = current === 'light' ? 'dark' : 'light';
+        doc.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+        
+        const darkIcon = document.querySelector('.theme-icon-dark');
+        const lightIcon = document.querySelector('.theme-icon-light');
+        if(darkIcon && lightIcon) {
+            darkIcon.style.display = next === 'light' ? 'block' : 'none';
+            lightIcon.style.display = next === 'light' ? 'none' : 'block';
+        }
     },
 
-    showToast(msg) {
-        this.toast.textContent = msg;
-        this.toast.classList.add('show');
-        setTimeout(() => this.toast.classList.remove('show'), 2500);
+    showToast(htmlMsg) {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+        toast.innerHTML = htmlMsg;
+        this.initIcons(); // por si se pasa un svg en el html
+        toast.classList.add('show');
+        clearTimeout(this._toastTimer);
+        this._toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
     },
 
     timeAgo(ts) {
         const diff = Math.floor((Date.now() - ts) / 1000);
-        if (diff < 60) return 'Ahora';
-        if (diff < 3600) return `${Math.floor(diff/60)}m`;
-        if (diff < 86400) return `${Math.floor(diff/3600)}h`;
-        return `${Math.floor(diff/86400)}d`;
+        if (diff < 60)    return '1m';
+        if (diff < 3600)  return `${Math.floor(diff / 60)}m`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+        return `${Math.floor(diff / 86400)}d`;
     },
 
     escapeHTML(str) {
+        if (typeof str !== 'string') return '';
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
@@ -476,69 +662,99 @@ const App = {
 };
 
 /* ==========================================================================
-   6. MOCK ENGINE (Data Generation)
+   7. MOCK ENGINE 
    ========================================================================== */
 const MockEngine = {
     generate() {
-        // 1. Niches
         const nicheData = [
-            { id: 'tech', name: 'Tecnología', icon: '💻' },
-            { id: 'startups', name: 'Startups', icon: '🚀' },
-            { id: 'ai', name: 'IA', icon: '🤖' },
-            { id: 'design', name: 'Diseño', icon: '🎨' },
-            { id: 'philosophy', name: 'Filosofía', icon: '🤔' },
-            { id: 'fitness', name: 'Fitness', icon: '💪' },
-            { id: 'productivity', name: 'Productividad', icon: '⏱️' },
-            { id: 'crypto', name: 'Crypto', icon: '🪙' }
+            { id: 'tech',         name: 'Ingeniería',   icon: 'cpu' },
+            { id: 'startups',     name: 'Startups',     icon: 'rocket' },
+            { id: 'ai',           name: 'Agentes IA',   icon: 'bot' },
+            { id: 'design',       name: 'UI/UX',        icon: 'palette' },
+            { id: 'philosophy',   name: 'Mindset',      icon: 'book-open' },
+            { id: 'fitness',      name: 'Rendimiento',  icon: 'activity' },
+            { id: 'productivity', name: 'Sistemas',     icon: 'timer' },
+            { id: 'crypto',       name: 'Web3',         icon: 'hexagon' }
         ];
-        nicheData.forEach(n => AppState.niches[n.id] = { ...n, followersCount: Math.floor(Math.random() * 5000) });
+        
+        nicheData.forEach(n => {
+            AppState.niches[n.id] = { ...n, followersCount: Math.floor(Math.random() * 8000) + 1200 };
+        });
 
-        // 2. Users (The 20 provided)
         const users = [
-            { id: "u_1", handle: "alex_chen_dev", name: "Alex Chen", avatar: "https://i.pravatar.cc/150?img=1", bio: "Software Architect building scalable distributed systems.", niches: ["tech", "productivity"], followersCount: 842, followingCount: 210 },
-            { id: "u_2", handle: "elena_design", name: "Elena Smith", avatar: "https://i.pravatar.cc/150?img=2", bio: "Visual storyteller and UI enthusiast.", niches: ["design", "productivity"], followersCount: 1205, followingCount: 430 },
-            { id: "u_3", handle: "stoic_marcus", name: "Marcus Aurelius", avatar: "https://i.pravatar.cc/150?img=3", bio: "Applying ancient wisdom to modern chaos.", niches: ["philosophy", "productivity"], followersCount: 560, followingCount: 90 },
-            { id: "u_4", handle: "sam_river_ai", name: "Sam River", avatar: "https://i.pravatar.cc/150?img=4", bio: "Exploring the frontiers of Large Language Models.", niches: ["ai", "tech"], followersCount: 3400, followingCount: 510 },
-            { id: "u_5", handle: "jordan_lift", name: "Jordan Lift", avatar: "https://i.pravatar.cc/150?img=5", bio: "Daily gains and disciplined routines.", niches: ["fitness", "productivity"], followersCount: 2100, followingCount: 340 },
-            { id: "u_6", handle: "max_codes", name: "Max Code", avatar: "https://i.pravatar.cc/150?img=6", bio: "JavaScript fanatic and indie hacker.", niches: ["tech", "startups"], followersCount: 450, followingCount: 120 },
-            { id: "u_7", handle: "startup_queen", name: "Startup Queen", avatar: "https://i.pravatar.cc/150?img=7", bio: "Serial entrepreneur building in public.", niches: ["startups", "design"], followersCount: 890, followingCount: 300 },
-            { id: "u_8", handle: "phil_mind", name: "Phil Mind", avatar: "https://i.pravatar.cc/150?img=8", bio: "Seeking truth through logic and reason.", niches: ["philosophy", "tech"], followersCount: 320, followingCount: 150 },
-            { id: "u_9", handle: "fit_tech_guy", name: "Fit Tech Guy", avatar: "https://i.pravatar.cc/150?img=9", bio: "Performance tracking and wearable tech enthusiast.", niches: ["fitness", "tech"], followersCount: 760, followingCount: 280 },
-            { id: "u_10", handle: "prod_hacker", name: "Prod Hacker", avatar: "https://i.pravatar.cc/150?img=10", bio: "Systems to maximize human output.", niches: ["productivity", "ai"], followersCount: 1500, followingCount: 400 },
-            { id: "u_11", handle: "design_lead_pro", name: "Design Lead", avatar: "https://i.pravatar.cc/150?img=11", bio: "Creative direction for global brands.", niches: ["design", "startups"], followersCount: 920, followingCount: 210 },
-            { id: "u_12", handle: "logic_coder", name: "Logic Coder", avatar: "https://i.pravatar.cc/150?img=12", bio: "Where technical implementation meets logic.", niches: ["tech", "philosophy"], followersCount: 410, followingCount: 180 },
-            { id: "u_13", handle: "ai_creative", name: "AI Creative", avatar: "https://i.pravatar.cc/150?img=13", bio: "Generative art and AI-driven design.", niches: ["ai", "design"], followersCount: 1100, followingCount: 350 },
-            { id: "u_14", handle: "fit_founder", name: "Fit Founder", avatar: "https://i.pravatar.cc/150?img=14", bio: "Building empires and building muscle.", niches: ["startups", "fitness"], followersCount: 650, followingCount: 190 },
-            { id: "u_15", handle: "zen_mode_on", name: "Zen Mode", avatar: "https://i.pravatar.cc/150?img=15", bio: "Minimalism and deep work.", niches: ["productivity", "philosophy"], followersCount: 280, followingCount: 110 },
-            { id: "u_16", handle: "solo_dev_mike", name: "Solo Dev Mike", avatar: "https://i.pravatar.cc/150?img=16", bio: "Bootstrapping SaaS products.", niches: ["startups", "tech"], followersCount: 540, followingCount: 220 },
-            { id: "u_17", handle: "bio_hacker_ai", name: "Bio Hacker", avatar: "https://i.pravatar.cc/150?img=17", bio: "Optimizing biology with machine learning.", niches: ["ai", "fitness"], followersCount: 890, followingCount: 410 },
-            { id: "u_18", handle: "design_math", name: "Design Math", avatar: "https://i.pravatar.cc/150?img=18", bio: "Exploring the geometry of beautiful interfaces.", niches: ["design", "philosophy"], followersCount: 430, followingCount: 120 },
-            { id: "u_19", handle: "founder_flow", name: "Founder Flow", avatar: "https://i.pravatar.cc/150?img=19", bio: "Scaling from 0 to 1 without burnout.", niches: ["startups", "productivity"], followersCount: 1400, followingCount: 380 },
-            { id: "u_20", handle: "tech_athlete", name: "Tech Athlete", avatar: "https://i.pravatar.cc/150?img=20", bio: "Code and cardio. Every single day.", niches: ["tech", "fitness"], followersCount: 310, followingCount: 140 }
+            { id: "u_1",  handle: "alex_chen_dev",   name: "Alex Chen",     avatar: "https://i.pravatar.cc/150?img=1",  bio: "Software Architect building scalable distributed systems.",    niches: ["tech", "productivity"],    followersCount: 842,  followingCount: 210 },
+            { id: "u_2",  handle: "elena_design",    name: "Elena Smith",   avatar: "https://i.pravatar.cc/150?img=2",  bio: "Visual storyteller and UI enthusiast.",                        niches: ["design", "productivity"],  followersCount: 1205, followingCount: 430 },
+            { id: "u_3",  handle: "stoic_marcus",    name: "Marcus Aurelius",avatar: "https://i.pravatar.cc/150?img=3", bio: "Applying ancient wisdom to modern chaos.",                     niches: ["philosophy","productivity"],followersCount: 560,  followingCount: 90  },
+            { id: "u_4",  handle: "sam_river_ai",    name: "Sam River",     avatar: "https://i.pravatar.cc/150?img=4",  bio: "Exploring the frontiers of Large Language Models.",            niches: ["ai", "tech"],              followersCount: 3400, followingCount: 510 },
+            { id: "u_5",  handle: "jordan_lift",     name: "Jordan Lift",   avatar: "https://i.pravatar.cc/150?img=5",  bio: "Daily gains and disciplined routines.",                        niches: ["fitness", "productivity"], followersCount: 2100, followingCount: 340 },
+            { id: "u_6",  handle: "max_codes",       name: "Max Code",      avatar: "https://i.pravatar.cc/150?img=6",  bio: "JavaScript fanatic and indie hacker.",                         niches: ["tech", "startups"],        followersCount: 450,  followingCount: 120 },
+            { id: "u_7",  handle: "startup_queen",   name: "Startup Queen", avatar: "https://i.pravatar.cc/150?img=7",  bio: "Serial entrepreneur building in public.",                      niches: ["startups", "design"],      followersCount: 890,  followingCount: 300 },
+            { id: "u_8",  handle: "phil_mind",       name: "Phil Mind",     avatar: "https://i.pravatar.cc/150?img=8",  bio: "Seeking truth through logic and reason.",                      niches: ["philosophy", "tech"],      followersCount: 320,  followingCount: 150 },
+            { id: "u_9",  handle: "fit_tech_guy",    name: "Fit Tech Guy",  avatar: "https://i.pravatar.cc/150?img=9",  bio: "Performance tracking and wearable tech enthusiast.",           niches: ["fitness", "tech"],         followersCount: 760,  followingCount: 280 },
+            { id: "u_10", handle: "prod_hacker",     name: "Prod Hacker",   avatar: "https://i.pravatar.cc/150?img=10", bio: "Systems to maximize human output.",                            niches: ["productivity", "ai"],      followersCount: 1500, followingCount: 400 },
+            { id: "u_11", handle: "design_lead_pro", name: "Design Lead",   avatar: "https://i.pravatar.cc/150?img=11", bio: "Creative direction for global brands.",                        niches: ["design", "startups"],      followersCount: 920,  followingCount: 210 },
+            { id: "u_12", handle: "logic_coder",     name: "Logic Coder",   avatar: "https://i.pravatar.cc/150?img=12", bio: "Where technical implementation meets logic.",                   niches: ["tech", "philosophy"],      followersCount: 410,  followingCount: 180 },
+            { id: "u_13", handle: "ai_creative",     name: "AI Creative",   avatar: "https://i.pravatar.cc/150?img=13", bio: "Generative art and AI-driven design.",                         niches: ["ai", "design"],            followersCount: 1100, followingCount: 350 },
+            { id: "u_14", handle: "fit_founder",     name: "Fit Founder",   avatar: "https://i.pravatar.cc/150?img=14", bio: "Building empires and building muscle.",                        niches: ["startups", "fitness"],     followersCount: 650,  followingCount: 190 },
+            { id: "u_15", handle: "zen_mode_on",     name: "Zen Mode",      avatar: "https://i.pravatar.cc/150?img=15", bio: "Minimalism and deep work.",                                    niches: ["productivity","philosophy"],followersCount: 280,  followingCount: 110 }
         ];
         users.forEach(u => { AppState.users[u.id] = u; });
 
-        // 3. Generate 80 Notes
-        const texts = ["Clean code is a love letter to your future self.", "Build in public, learn in public.", "AI is a tool, not a replacement.", "Design is thinking made visual.", "Consistency > Intensity."];
-        for (let i = 1; i <= 80; i++) {
-            const authorId = `u_${Math.floor(Math.random() * 20) + 1}`;
+        const texts = [
+            "Clean code is a love letter to your future self.",
+            "Build in public, learn in public. The rest follows.",
+            "AI is a tool, not a replacement. Use it to amplify, not to abdicate.",
+            "Design is thinking made visual. Ugly products are unfinished thoughts.",
+            "Consistency beats intensity every single time.",
+            "The best architecture is the one your team actually understands.",
+            "Ship small, learn fast, iterate constantly. The waterfall is dead.",
+            "A startup that doesn't talk to its users is guessing in the dark.",
+            "Every great UI begins with empathy, not pixels.",
+            "Technical debt is a loan with compound interest. Pay it early."
+        ];
+
+        for (let i = 1; i <= 60; i++) {
+            const authorId = `u_${Math.floor(Math.random() * 15) + 1}`;
             const nIds = Object.keys(AppState.niches);
-            const nId = Math.random() > 0.4 ? nIds[Math.floor(Math.random() * nIds.length)] : null;
-            const id = `n_${i}`;
+            const nId  = Math.random() > 0.3 ? nIds[Math.floor(Math.random() * nIds.length)] : null;
+            const id   = `n_${i}`;
             AppState.notes[id] = {
                 id, authorId,
                 content: texts[Math.floor(Math.random() * texts.length)],
-                visibility: Math.random() > 0.8 ? 'PRIVATE' : (Math.random() > 0.8 ? 'NICHE' : 'PUBLIC'),
+                visibility: Math.random() > 0.85 ? 'PRIVATE' : (Math.random() > 0.85 ? 'NICHE' : 'PUBLIC'),
                 nicheId: nId,
-                likesCount: Math.floor(Math.random() * 30),
-                renotesCount: Math.floor(Math.random() * 5),
-                timestamp: Date.now() - Math.floor(Math.random() * 50000000),
-                isAiClassified: Math.random() > 0.7
+                likesCount:   Math.floor(Math.random() * 80),
+                renotesCount: Math.floor(Math.random() * 15),
+                timestamp: Date.now() - Math.floor(Math.random() * 86400000 * 5),
+                isAiClassified: Math.random() > 0.6
             };
-            if (authorId === 'u_me') AppState.currentUser.ownNotes.add(id);
         }
+
+        AppState.currentUser.followedNiches.add('tech');
+        AppState.currentUser.followedNiches.add('ai');
+        AppState.currentUser.followedNiches.add('startups');
+        AppState.currentUser.followedUsers.add('u_1');
+        AppState.currentUser.followedUsers.add('u_4');
+
+        const welcomeId = 'n_welcome';
+        AppState.notes[welcomeId] = {
+            id: welcomeId, autorId: 'u_me',
+            content: 'Notebing v2 is live! \nDesarrollo fluido y UI re-ingenierada con CSS Grid y Lucide Icons.',
+            visibility: 'PUBLIC', nicheId: 'productivity', likesCount: 42, renotesCount: 8,
+            timestamp: Date.now() - 60000, isAiClassified: false
+        };
+        AppState.currentUser.ownNotes.add(welcomeId);
+
+        const style = document.createElement('style');
+        style.textContent = `
+            .niches-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+            .niche-card { display: flex; align-items: center; justify-content: space-between; transition: background-color 0.15s ease; border: 1px solid transparent;}
+            .niche-card:hover { background-color: var(--bg-surface); border-color: var(--border-color); box-shadow: var(--shadow-sm); transform: translateY(-2px); transition: all var(--transition-fast); }
+            @keyframes fadeOutCard { from { opacity: 1; transform: translateX(0); max-height: 200px; } to { opacity: 0; transform: translateX(20px); max-height: 0; padding: 0; margin: 0; border: none; } }
+            @media (min-width: 600px) { .niches-grid { grid-template-columns: 1fr 1fr; } }
+        `;
+        document.head.appendChild(style);
     }
 };
 
-// --- 6. APP INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => App.init());

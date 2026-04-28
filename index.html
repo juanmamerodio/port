@@ -2,109 +2,139 @@
 <html lang="es" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#ffffff" id="meta-theme-color">
     <title>Notebing | Premium Social Experience</title>
-    
-    <!-- 1. Framework de Utilidades (Tailwind) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- 2. Estilos Personalizados (Variables, Animaciones, Temas) -->
+    <meta name="description" content="Notebing — La plataforma social de notas atómicas. Descubrí contenido de alta señal en tus nichos favoritos.">
+
     <link rel="stylesheet" href="style.css">
-    
-    <!-- 3. Tipografía de Alta Calidad -->
+
+    <!-- Tipografía de Alta Calidad -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-</head>
-<body class="bg-[var(--bg-base)] text-[var(--text-primary)] antialiased">
 
-    <!-- CONTENEDOR PRINCIPAL (Layout Grid) -->
-    <div class="app-container flex flex-col md:flex-row min-h-screen max-w-[1280px] mx-auto">
-        
-        <!-- SIDEBAR IZQUIERDO (Navegación Desktop) -->
-        <aside class="sidebar-left hidden md:flex flex-col w-[260px] p-5 sticky top-0 h-screen">
-            <div class="logo-desktop text-3xl font-extrabold text-[var(--accent-primary)] mb-8 px-4">
-                Note<span>bing</span>.
+    <!-- Lucide Icons (Minimalista) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        (function() {
+            const saved = localStorage.getItem('theme');
+            if (saved) document.documentElement.setAttribute('data-theme', saved);
+        })();
+    </script>
+</head>
+<body>
+
+    <!-- CONTENEDOR PRINCIPAL (CSS Grid) -->
+    <div class="app-container">
+
+        <!-- SIDEBAR IZQUIERDO (Notion Style) -->
+        <aside class="sidebar-left">
+            <div class="sidebar-left-inner">
+                <div class="logo-desktop">
+                    <i data-lucide="layers" class="logo-icon"></i>
+                    Note<span>bing</span>.
+                </div>
+                
+                <nav class="nav-desktop">
+                    <div class="nav-section-title">Navegación</div>
+                    <button class="nav-item nav-item--desktop active" data-view="home">
+                        <i data-lucide="home" class="nav-icon"></i> <span>Inicio</span>
+                    </button>
+                    <button class="nav-item nav-item--desktop" data-view="niches">
+                        <i data-lucide="compass" class="nav-icon"></i> <span>Explorar</span>
+                    </button>
+                    
+                    <div class="nav-section-divider"></div>
+                    
+                    <div class="nav-section-title">Tus Espacios</div>
+                    <button class="nav-item nav-item--desktop" data-view="brain">
+                        <i data-lucide="brain" class="nav-icon"></i> <span>Cerebro Privado</span>
+                    </button>
+                    <button class="nav-item nav-item--desktop" data-view="profile">
+                        <i data-lucide="user" class="nav-icon"></i> <span>Perfil</span>
+                    </button>
+                </nav>
+                <button class="btn-primary btn-compose-desktop" onclick="UI.focusComposer()">
+                    <i data-lucide="pen-line" class="btn-icon"></i> Postear Nota
+                </button>
             </div>
-            <nav class="nav-desktop flex flex-col gap-2">
-                <button class="nav-item-desktop active flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full transition-all" data-view="home">
-                    <span class="text-2xl">🏠</span> <span>Inicio</span>
-                </button>
-                <button class="nav-item-desktop flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full transition-all" data-view="niches">
-                    <span class="text-2xl">🎯</span> <span>Nichos</span>
-                </button>
-                <button class="nav-item-desktop flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full transition-all" data-view="brain">
-                    <span class="text-2xl">🧠</span> <span>Cerebro</span>
-                </button>
-                <button class="nav-item-desktop flex items-center gap-4 px-5 py-3 text-xl font-semibold rounded-full transition-all" data-view="profile">
-                    <span class="text-2xl">👤</span> <span>Perfil</span>
-                </button>
-            </nav>
-            <button class="btn-compose-desktop mt-8 bg-[var(--accent-primary)] text-white py-4 rounded-full text-lg font-bold shadow-lg hover:bg-[var(--accent-hover)] transition-all" onclick="UI.focusComposer()">
-                Postear
-            </button>
         </aside>
 
-        <!-- ÁREA DE CONTENIDO PRINCIPAL (Donde el Router inyecta las vistas) -->
-        <main class="main-content flex-1 min-w-0 max-w-[600px] mx-auto border-x border-[var(--border-color)] bg-[var(--bg-surface)] min-h-screen pb-20 md:pb-0">
-            
-            <!-- Barra Superior Dinámica -->
-            <header class="top-bar sticky top-0 z-50 flex justify-between items-center px-4 py-3 border-b border-[var(--border-color)] bg-[var(--bg-glass)] backdrop-blur-md">
-                <div class="flex items-center gap-3">
-                    <div class="avatar w-8 h-8 flex items-center justify-center text-xs font-bold text-white bg-[var(--accent-primary)] rounded-full" id="top-bar-avatar">T</div>
-                    <h1 id="view-title" class="text-lg font-bold">Inicio</h1>
+        <!-- ÁREA DE CONTENIDO PRINCIPAL (X Style Feed) -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="top-bar-left">
+                    <div class="avatar avatar--sm" id="top-bar-avatar">T</div>
+                    <h1 id="view-title">Inicio</h1>
                 </div>
                 <div class="top-bar-actions">
-                    <button id="theme-toggle" class="icon-btn text-xl" aria-label="Cambiar tema">🌗</button>
+                    <button id="theme-toggle" class="icon-btn" aria-label="Cambiar tema">
+                        <i data-lucide="moon" class="theme-icon-dark"></i>
+                        <i data-lucide="sun" class="theme-icon-light" style="display: none;"></i>
+                    </button>
                 </div>
             </header>
 
-            <!-- CONTENEDOR DE VISTAS (Inyección de HTML por JS) -->
             <div id="view-container">
-                <!-- El contenido de Home, Niches, Brain o Profile se cargará aquí -->
+                <!-- Se inyectan vistas aquí -->
             </div>
         </main>
 
-        <!-- SIDEBAR DERECHO (Widgets Desktop) -->
-        <aside class="sidebar-right hidden lg:flex flex-col w-[320px] p-5 sticky top-0 h-screen gap-5">
-            <div class="widget bg-[var(--bg-surface)] border border-[var(--border-color)] p-4 rounded-2xl shadow-sm">
-                <h3 class="font-bold text-lg mb-4">Nichos Sugeridos</h3>
-                <div id="trending-niches" class="flex flex-col gap-4">
-                    <!-- Inyectado por JS -->
+        <!-- SIDEBAR DERECHO (Widgets) -->
+        <aside class="sidebar-right">
+            <div class="sidebar-right-inner">
+                <div class="widget">
+                    <h3>Nichos en Tendencia</h3>
+                    <div id="trending-niches"></div>
                 </div>
-            </div>
-            <div class="widget bg-[var(--bg-surface)] border border-[var(--border-color)] p-4 rounded-2xl shadow-sm">
-                <h3 class="font-bold text-lg mb-4">Seguir Usuarios</h3>
-                <div id="suggested-users" class="flex flex-col gap-4">
-                    <!-- Inyectado por JS -->
+                <div class="widget">
+                    <h3>Sugerencias para ti</h3>
+                    <div id="suggested-users"></div>
                 </div>
             </div>
         </aside>
 
-        <!-- NAVEGACIÓN INFERIOR (Mobile Only) -->
-        <nav class="bottom-nav md:hidden fixed bottom-0 left-0 w-full bg-[var(--bg-glass)] backdrop-blur-lg border-t border-[var(--border-color)] flex justify-around py-3 px-2 z-50">
-            <button class="nav-item active flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="home">
-                <span class="text-2xl">🏠</span><span>Inicio</span>
+        <!-- NAVEGACIÓN INFERIOR (Mobile) -->
+        <nav class="bottom-nav">
+            <button class="nav-item nav-item--mobile active" data-view="home">
+                <i data-lucide="home" class="nav-icon"></i><span>Inicio</span>
             </button>
-            <button class="nav-item flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="niches">
-                <span class="text-2xl">🎯</span><span>Nichos</span>
+            <button class="nav-item nav-item--mobile" data-view="niches">
+                <i data-lucide="compass" class="nav-icon"></i><span>Explorar</span>
             </button>
-            <button class="nav-item flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="brain">
-                <span class="text-2xl">🧠</span><span>Cerebro</span>
+            <button class="nav-item nav-item--mobile btn-compose-mobile" onclick="UI.focusComposer()">
+                <div class="fab-inner">
+                   <i data-lucide="plus" class="nav-icon"></i>
+                </div>
             </button>
-            <button class="nav-item flex flex-col items-center gap-1 text-[10px] font-semibold" data-view="profile">
-                <span class="text-2xl">👤</span><span>Perfil</span>
+            <button class="nav-item nav-item--mobile" data-view="brain">
+                <i data-lucide="brain" class="nav-icon"></i><span>Cerebro</span>
+            </button>
+            <button class="nav-item nav-item--mobile" data-view="profile">
+                <i data-lucide="user" class="nav-icon"></i><span>Perfil</span>
             </button>
         </nav>
     </div>
 
-    <!-- SISTEMA DE NOTIFICACIONES (Toast) -->
-    <div id="toast" class="toast">Mensaje</div>
+    <!-- TOAST -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    <!-- MOTOR DE LA APLICACIÓN (Lógica de Negocio y Renderizado) -->
-    
+    <!-- MODAL CUSTOM -->
+    <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
+        <div class="modal">
+            <p id="modal-message" class="modal-message"></p>
+            <div id="modal-input-wrap" class="modal-input-wrap hidden">
+                <textarea id="modal-input" class="modal-textarea" rows="4"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button id="modal-cancel" class="btn-secondary">Cancelar</button>
+                <button id="modal-confirm" class="btn-primary btn--danger">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
-<script src="script.js"></script>
-
 </html>
