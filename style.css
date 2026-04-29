@@ -342,14 +342,20 @@ a {
    ========================================================================== */
 @media (min-width: 1080px) {
     .app-container {
-        grid-template-columns: 260px minmax(0, 600px) 320px;
-        max-width: 1240px;
+        grid-template-columns: 260px 600px 320px;
+        column-gap: 0;
+        justify-content: center;
+        max-width: 1200px;
+        margin: 0 auto;
         border-radius: var(--radius-lg);
+        box-shadow: 0 30px 100px rgba(0, 0, 0, 0.4);
     }
 
     .sidebar-left-inner {
         padding: var(--space-xl) var(--space-lg);
         border-radius: var(--radius-lg);
+        z-index: 30;
+        box-shadow: 15px 0 45px rgba(0, 0, 0, 0.4);
     }
 
     .nav-item--desktop {
@@ -359,10 +365,12 @@ a {
 
     /* Show right sidebar */
     .sidebar-right {
-        display: block;
         grid-column: 3;
+        display: grid;
         grid-row: 1;
-        position: relative;
+        position: sticky;
+        top: 0;
+        height: fit-content;
         border-radius: var(--radius-lg);
     }
 
@@ -370,9 +378,12 @@ a {
         position: sticky;
         top: 0;
         height: 100vh;
-        padding: var(--space-xl) var(--space-md) var(--space-xl) var(--space-lg);
+        padding: var(--space-xl) var(--space-lg);
         overflow-y: auto;
         border-radius: var(--radius-lg);
+        border-left: 1px solid rgba(0, 0, 0, 0.4);
+        z-index: 30;
+        box-shadow: -15px 0 45px rgba(0, 0, 0, 0.4);
     }
 
     .main-content {
@@ -387,7 +398,7 @@ a {
     position: sticky;
     top: 0;
     z-index: 50;
-    padding: calc(12px + env(safe-area-inset-top)) var(--space-lg) 12px;
+    padding: calc(10px + env(safe-area-inset-top)) var(--space-lg) 12px;
     background: var(--bg-glass);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -397,7 +408,7 @@ a {
     justify-content: space-between;
     align-items: center;
     /* Full width on mobile */
-    border-radius: 0;
+    border-radius: var(--radius-lg);
 }
 
 .top-bar-left {
@@ -948,6 +959,7 @@ a {
     box-shadow: var(--shadow-card);
     padding: var(--space-lg);
     margin-bottom: var(--space-md);
+    box-shadow: rgba(34, 34, 34, 0.182) 4px 4px 9px 0px, rgba(17, 17, 17, 1) -10px -10px 25px -12px, rgba(31, 31, 31, 0.11) 2px 2px 6px 0px;
 }
 
 .widget h3 {
