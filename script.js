@@ -18,8 +18,8 @@ const Utils = {
     },
     timeAgo(ts) {
         const diff = Math.floor((Date.now() - ts) / 1000);
-        if (diff < 60)    return '1m';
-        if (diff < 3600)  return `${Math.floor(diff / 60)}m`;
+        if (diff < 60) return '1m';
+        if (diff < 3600) return `${Math.floor(diff / 60)}m`;
         if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
         return `${Math.floor(diff / 86400)}d`;
     },
@@ -43,7 +43,7 @@ const AppState = {
         likedNotes: new Set(), savedNotes: new Set(), renotedNotes: new Set(),
         followedUsers: new Set(), followedNiches: new Set(),
         ownNotes: new Set(),
-        
+
         folders: [
             { id: 'f_cerebro', name: 'Mi Cerebro (Privadas)', icon: 'brain', isPrivate: true },
             { id: 'f_public', name: 'Notas Públicas', icon: 'globe', isPrivate: false }
@@ -121,7 +121,7 @@ const UI = {
         cancel: () => document.getElementById('modal-cancel'),
         notifCount: () => document.getElementById('notif-count')
     },
-    
+
     init() {
         this.els.confirm().addEventListener('click', () => this._closeModal(true));
         this.els.cancel().addEventListener('click', () => this._closeModal(false));
@@ -134,7 +134,7 @@ const UI = {
         const t = this.els.toast();
         if (!t) return;
         t.innerHTML = htmlMsg;
-        App.initIcons(); 
+        App.initIcons();
         t.classList.add('show');
         clearTimeout(this._toastTimer);
         this._toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
@@ -208,7 +208,7 @@ const UI = {
         const wrap = this.els.inputWrap();
         this.els.message().innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><i data-lucide="blocks"></i> Añadir Bloque</div>';
         wrap.classList.remove('hidden');
-        
+
         wrap.innerHTML = `
             <div class="folder-select-list">
                 <label class="folder-option"><input type="radio" name="block-type" value="text" checked><div class="folder-option-inner"><i data-lucide="type"></i> Texto</div></label>
@@ -245,7 +245,7 @@ const UI = {
         }
 
         this.els.overlay().classList.add('hidden');
-        
+
         // Restore standard textarea
         const wrap = this.els.inputWrap();
         if (!wrap.querySelector('#modal-input')) {
@@ -272,7 +272,7 @@ const BlockEditor = {
 
     renderBlock(block, index, allowEdit) {
         let contentHtml = '';
-        
+
         if (block.type === 'divider') {
             contentHtml = '<hr class="block-content block-divider" data-type="divider">';
         } else if (block.type === 'folder') {
@@ -284,7 +284,7 @@ const BlockEditor = {
             }
         } else {
             // Text based blocks (h1, h2, h3, text, quote)
-            const tag = ['h1','h2','h3'].includes(block.type) ? block.type : (block.type === 'quote' ? 'blockquote' : 'p');
+            const tag = ['h1', 'h2', 'h3'].includes(block.type) ? block.type : (block.type === 'quote' ? 'blockquote' : 'p');
             contentHtml = `<${tag} class="block-content" data-type="${block.type}">${Utils.escapeHTML(block.content)}</${tag}>`;
         }
 
@@ -330,7 +330,7 @@ const BlockEditor = {
         const wrappers = container.querySelectorAll('.block-wrapper');
         wrappers.forEach(wrapper => {
             wrapper.addEventListener('dragover', (e) => {
-                e.preventDefault(); 
+                e.preventDefault();
                 e.dataTransfer.dropEffect = 'move';
             });
             wrapper.addEventListener('drop', (e) => {
@@ -342,7 +342,7 @@ const BlockEditor = {
                 const blocks = AppState.currentUser.profileBlocks;
                 const moved = blocks.splice(this.draggedBlockIndex, 1)[0];
                 blocks.splice(dropIndex, 0, moved);
-                
+
                 Views.userProfile.renderProfileContent();
             });
         });
@@ -355,11 +355,11 @@ const BlockEditor = {
                 if (action === 'edit') await this.editBlock(parseInt(btn.dataset.index));
                 if (action === 'delete') this.deleteBlock(parseInt(btn.dataset.index));
             }
-            
+
             // Fallback arrows support
             const arrowUp = e.target.closest('.arrow-up');
             if (arrowUp) this.moveBlock(parseInt(arrowUp.dataset.index), -1);
-            
+
             const arrowDown = e.target.closest('.arrow-down');
             if (arrowDown) this.moveBlock(parseInt(arrowDown.dataset.index), 1);
         });
@@ -390,7 +390,7 @@ const BlockEditor = {
                 if (!content) return;
             }
         }
-        
+
         AppState.currentUser.profileBlocks.push({ id: Utils.generateId('b'), type, content });
         Views.userProfile.renderProfileContent();
         UI.showToast('<i data-lucide="check"></i> Bloque añadido');
@@ -427,7 +427,7 @@ const Views = {
                 <div class="avatar avatar--md">T</div>
                 <div class="composer-body">
                     <textarea id="note-input" placeholder="¿Qué estás descubriendo hoy?"></textarea>
-                    <div class="composer-actions">
+                    <div class="composer-actions" text-align: center;>
                         <div class="select-group">
                             <div class="pill-select-wrapper">
                                 <i data-lucide="globe" class="select-icon"></i>
@@ -439,7 +439,7 @@ const Views = {
                             </div>
                             <div class="pill-select-wrapper">
                                 <i data-lucide="sparkles" class="select-icon"></i>
-                                <select id="note-niche" class="pill-select" style="padding-left: 28px;">
+                                <select id="note-niche" class="pill-select" style="padding-left: 20px;">
                                     <option value="">IA Automático</option>
                                     ${Object.values(AppState.niches).map(n => `<option value="${n.id}">${Utils.escapeHTML(n.name)}</option>`).join('')}
                                 </select>
@@ -455,31 +455,31 @@ const Views = {
             <div id="feed-container" class="feed-container"></div>
         `,
         onMount: () => {
-             const btn = document.getElementById('btn-publish');
-             if (btn) btn.addEventListener('click', () => App.handlePublish());
-             
-             const filterContainer = document.getElementById('home-filters');
-             if (filterContainer) {
-                 let pillsHTML = `
+            const btn = document.getElementById('btn-publish');
+            if (btn) btn.addEventListener('click', () => App.handlePublish());
+
+            const filterContainer = document.getElementById('home-filters');
+            if (filterContainer) {
+                let pillsHTML = `
                     <button class="filter-pill ${AppState.currentFilter === 'for_you' ? 'active' : ''}" data-filter="for_you">Para ti</button>
                     <button class="filter-pill ${AppState.currentFilter === 'following' ? 'active' : ''}" data-filter="following">Siguiendo</button>
                  `;
-                 Object.values(AppState.niches).forEach(n => {
+                Object.values(AppState.niches).forEach(n => {
                     pillsHTML += `<button class="filter-pill ${AppState.currentFilter === n.id ? 'active' : ''}" data-filter="${n.id}">${Utils.escapeHTML(n.name)}</button>`;
-                 });
-                 filterContainer.innerHTML = pillsHTML;
- 
-                 filterContainer.addEventListener('click', e => {
+                });
+                filterContainer.innerHTML = pillsHTML;
+
+                filterContainer.addEventListener('click', e => {
                     const pill = e.target.closest('.filter-pill');
-                    if(!pill) return;
+                    if (!pill) return;
                     AppState.currentFilter = pill.dataset.filter;
                     filterContainer.querySelectorAll('.filter-pill').forEach(el => el.classList.remove('active'));
                     pill.classList.add('active');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     App.renderFeed();
-                 });
-             }
-             App.renderFeed();
+                });
+            }
+            App.renderFeed();
         }
     },
 
@@ -507,7 +507,7 @@ const Views = {
                         </div>
                     </div>
                 `).join('');
-                
+
                 // Mark all as read
                 AppState.notifications.forEach(n => n.read = true);
                 UI.updateBadge();
@@ -562,7 +562,7 @@ const Views = {
             document.head.appendChild(style);
         }
     },
-    
+
     nicheDetail: {
         title: (id) => AppState.niches[id] ? AppState.niches[id].name : "Nicho",
         render: (id) => {
@@ -601,7 +601,7 @@ const Views = {
             const isMe = id === 'u_me';
             const u = isMe ? AppState.currentUser : AppState.users[id];
             if (!u) return `<div class="empty-state">Usuario no encontrado</div>`;
-            
+
             return `
                 <div style="padding: 32px 24px 0 24px;">
                     <div style="position: relative; margin-bottom: 24px;">
@@ -655,17 +655,17 @@ const Views = {
         renderProfileContent: (idParam) => {
             const id = AppState.currentView === 'profile' ? 'u_me' : (idParam || AppState.currentParam);
             const container = document.getElementById('profile-dynamic-content');
-            if(!container) return;
-            
+            if (!container) return;
+
             const isMe = id === 'u_me';
-            
+
             // Logic for Lock / Render blocks
             if (!isMe) {
                 // Mock user profile block injection for others
                 container.innerHTML = `<div class="block-content block-text" data-type="text">${Utils.escapeHTML(AppState.users[id].bio)}</div>
                 <div style="margin-top:24px;">
-                    <button class="btn-primary btn-follow ${AppState.currentUser.followedUsers.has(id)?'following':''}" data-type="user" data-id="${id}" style="width:100%;">
-                        ${AppState.currentUser.followedUsers.has(id)?'Siguiendo':'Seguir Perfil'}
+                    <button class="btn-primary btn-follow ${AppState.currentUser.followedUsers.has(id) ? 'following' : ''}" data-type="user" data-id="${id}" style="width:100%;">
+                        ${AppState.currentUser.followedUsers.has(id) ? 'Siguiendo' : 'Seguir Perfil'}
                     </button>
                 </div>`;
                 App.initIcons();
@@ -715,7 +715,7 @@ const Router = {
 
         // Update nav active states
         document.querySelectorAll('.nav-item').forEach(el => {
-            if(el.dataset.view) {
+            if (el.dataset.view) {
                 el.classList.toggle('active', el.dataset.view === viewName || (viewName === 'userProfile' && el.dataset.view === 'profile' && param === 'u_me'));
             }
         });
@@ -728,11 +728,11 @@ const Router = {
         // Render with iOS Spring Transition
         const container = document.getElementById('view-container');
         window.scrollTo(0, 0);
-        
+
         // Remove animation class to reset, then flush layout
         container.classList.remove('view-enter');
-        void container.offsetWidth; 
-        
+        void container.offsetWidth;
+
         container.innerHTML = Views[viewName].render(param);
         container.classList.add('view-enter');
 
@@ -753,7 +753,7 @@ const App = {
         UI.init();
         this.bindEvents();
         Router.navigate(AppState.currentView);
-        
+
         // Simulate a welcome notification
         setTimeout(() => {
             DataService.addNotification('user-plus', '<b>Notebing Team</b> ha empezado a seguirte.');
@@ -767,7 +767,7 @@ const App = {
     bindEvents() {
         document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                if(!e.target.closest('.btn-compose-mobile')) {
+                if (!e.target.closest('.btn-compose-mobile')) {
                     e.preventDefault();
                     Router.navigate(btn.dataset.view);
                 }
@@ -775,21 +775,21 @@ const App = {
         });
 
         const toggleBtn = document.getElementById('theme-toggle');
-        if(toggleBtn) toggleBtn.addEventListener('click', () => this.toggleTheme());
+        if (toggleBtn) toggleBtn.addEventListener('click', () => this.toggleTheme());
 
         document.addEventListener('click', (e) => {
             const btn = e.target.closest('.action-btn, .opt-btn, .btn-follow');
             if (btn && !btn.hasAttribute('data-editor-action')) {
                 const { action, id, type } = btn.dataset;
-                if(!btn.classList.contains('z-button')) {
-                    if (action === 'like')   this.handleLike(id, btn);
-                    if (action === 'save')   this.handleSave(id, btn);
+                if (!btn.classList.contains('z-button')) {
+                    if (action === 'like') this.handleLike(id, btn);
+                    if (action === 'save') this.handleSave(id, btn);
                     if (action === 'delete') this.handleDelete(id);
                     if (action === 'renote') this.handleRenote(id, btn);
                 }
                 if (btn.classList.contains('btn-follow')) {
                     e.stopPropagation();
-                    if (type === 'user')  this.handleFollowUser(id, btn);
+                    if (type === 'user') this.handleFollowUser(id, btn);
                     if (type === 'niche') this.handleFollowNiche(id, btn);
                 }
                 return;
@@ -839,7 +839,7 @@ const App = {
             let finalNiche = rNiche ? rNiche.value : '';
             let isAi = false;
             const vis = rVis ? rVis.value : 'PUBLIC';
-            
+
             if (!finalNiche && vis !== 'PRIVATE') {
                 finalNiche = await DataService.classify(content);
                 isAi = true;
@@ -886,8 +886,8 @@ const App = {
     handleSave(id, btn) {
         const isSaved = AppState.currentUser.savedNotes.has(id);
         if (isSaved) AppState.currentUser.savedNotes.delete(id);
-        else         AppState.currentUser.savedNotes.add(id);
-        
+        else AppState.currentUser.savedNotes.add(id);
+
         btn.classList.toggle('saved', !isSaved);
         UI.showToast(!isSaved ? "<i data-lucide='bookmark-check'></i> Guardado" : "<i data-lucide='bookmark-minus'></i> Removido");
     },
@@ -915,7 +915,7 @@ const App = {
         delete AppState.notes[id];
         AppState.currentUser.ownNotes.delete(id);
         UI.showToast("<i data-lucide='trash'></i> Eliminada");
-        
+
         const card = document.querySelector(`.note-card[data-note-id="${id}"]`);
         if (card) {
             card.style.animation = 'fadeOutCard 0.25s ease forwards';
@@ -972,16 +972,16 @@ const App = {
         const isFollowing = AppState.currentUser.followedNiches.has(nicheId);
         if (isFollowing) AppState.currentUser.followedNiches.delete(nicheId);
         else AppState.currentUser.followedNiches.add(nicheId);
-        
+
         document.querySelectorAll(`.btn-follow[data-type="niche"][data-id="${nicheId}"]`).forEach(b => {
             b.textContent = isFollowing ? 'Seguir' : 'Siguiendo';
             b.classList.toggle('following', !isFollowing);
         });
-        
+
         UI.showToast(isFollowing ? '<i data-lucide="minus"></i> Dejaste el nicho' : '<i data-lucide="check"></i> Te uniste');
         this.renderSidebars();
         if (AppState.currentView === 'home' || (AppState.currentView === 'nicheDetail' && AppState.currentParam === nicheId)) {
-             this.renderFeed();
+            this.renderFeed();
         }
     },
 
@@ -1012,11 +1012,11 @@ const App = {
             if (f === 'for_you') {
                 notes = notes.filter(n => n.visibility === 'PUBLIC');
             } else if (f === 'following') {
-                notes = notes.filter(n => 
+                notes = notes.filter(n =>
                     n.visibility !== 'PRIVATE' &&
                     (AppState.currentUser.followedUsers.has(n.authorId) ||
-                     AppState.currentUser.followedNiches.has(n.nicheId) ||
-                     n.authorId === AppState.currentUser.id)
+                        AppState.currentUser.followedNiches.has(n.nicheId) ||
+                        n.authorId === AppState.currentUser.id)
                 );
             } else {
                 notes = notes.filter(n => n.visibility !== 'PRIVATE' && n.nicheId === f);
@@ -1043,10 +1043,10 @@ const App = {
 
     _buildNoteCard(note) {
         const author = AppState.users[note.authorId] || AppState.currentUser;
-        const niche  = note.nicheId ? AppState.niches[note.nicheId] : null;
-        const isOwn  = note.authorId === AppState.currentUser.id;
-        const isLiked   = AppState.currentUser.likedNotes.has(note.id);
-        const isSaved   = AppState.currentUser.savedNotes.has(note.id);
+        const niche = note.nicheId ? AppState.niches[note.nicheId] : null;
+        const isOwn = note.authorId === AppState.currentUser.id;
+        const isLiked = AppState.currentUser.likedNotes.has(note.id);
+        const isSaved = AppState.currentUser.savedNotes.has(note.id);
         const isRenoted = AppState.currentUser.renotedNotes.has(note.id);
 
         const avatar = author.avatar && author.avatar.startsWith('http')
@@ -1112,7 +1112,7 @@ const App = {
             .map(u => `
                 <div class="trend-item">
                     <div class="user-link" data-user-id="${u.id}" style="display:flex;align-items:center;gap:10px;">
-                        <div class="avatar avatar--sm">${u.avatar.startsWith('http')?`<img src="${u.avatar}">`:Utils.escapeHTML(u.avatar)}</div>
+                        <div class="avatar avatar--sm">${u.avatar.startsWith('http') ? `<img src="${u.avatar}">` : Utils.escapeHTML(u.avatar)}</div>
                         <div>
                             <div style="font-size:14px;font-weight:700;">${Utils.escapeHTML(u.name)}</div>
                             <div style="font-size:13px;color:var(--text-secondary);">@${Utils.escapeHTML(u.handle)}</div>
@@ -1145,11 +1145,11 @@ const MockEngine = {
         for (let i = 1; i <= 20; i++) {
             const id = Utils.generateId('n');
             AppState.notes[id] = {
-                id, authorId: i%3===0 ? 'u_me':'u_1', content: "Draft atomic note " + i,
-                visibility: i%5===0 ? 'PRIVATE' : 'PUBLIC', nicheId: 'tech',
-                likesCount: 12, renotesCount: 2, timestamp: Date.now() - (i*10000), isAiClassified: false
+                id, authorId: i % 3 === 0 ? 'u_me' : 'u_1', content: "Draft atomic note " + i,
+                visibility: i % 5 === 0 ? 'PRIVATE' : 'PUBLIC', nicheId: 'tech',
+                likesCount: 12, renotesCount: 2, timestamp: Date.now() - (i * 10000), isAiClassified: false
             };
-            if(i%3===0) AppState.currentUser.ownNotes.add(id);
+            if (i % 3 === 0) AppState.currentUser.ownNotes.add(id);
         }
     }
 };
