@@ -4,17 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#ffffff" id="meta-theme-color">
-    <title>Notebing | Premium Social Experience</title>
+    <title>Notebing — Social Knowledge Platform</title>
     <meta name="description" content="Notebing — La plataforma social de notas atómicas. Descubrí contenido de alta señal en tus nichos favoritos.">
 
     <link rel="stylesheet" href="style.css">
 
-    <!-- Tipografía de Alta Calidad -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Lucide Icons (Minimalista) -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <script>
@@ -26,16 +24,12 @@
 </head>
 <body>
 
-    <!-- CONTENEDOR PRINCIPAL (CSS Grid) -->
     <div class="app-container">
 
-        <!-- SIDEBAR IZQUIERDO (Notion Style) -->
+        <!-- SIDEBAR IZQUIERDO -->
         <aside class="sidebar-left">
             <div class="sidebar-left-inner">
-                <div class="logo-desktop">
-                    <i data-lucide="layers" class="logo-icon"></i>
-                    Note<span>bing</span>.
-                </div>
+                <div class="logo-desktop">Notebing.</div>
                 
                 <nav class="nav-desktop">
                     <div class="nav-section-title">Navegación</div>
@@ -44,6 +38,10 @@
                     </button>
                     <button class="nav-item nav-item--desktop" data-view="niches">
                         <i data-lucide="compass" class="nav-icon"></i> <span>Explorar</span>
+                    </button>
+                    <button class="nav-item nav-item--desktop" data-view="notifications">
+                        <i data-lucide="bell" class="nav-icon"></i> <span>Notificaciones</span>
+                        <span class="notif-badge" id="notif-count" style="display:none;">0</span>
                     </button>
                     
                     <div class="nav-section-divider"></div>
@@ -56,13 +54,13 @@
                         <i data-lucide="user" class="nav-icon"></i> <span>Perfil</span>
                     </button>
                 </nav>
-                <button class="btn-primary btn-compose-desktop" onclick="UI.focusComposer()">
+                <button class="btn-primary btn-compose-desktop" onclick="App.focusComposer()">
                     <i data-lucide="pen-line" class="btn-icon"></i> Postear Nota
                 </button>
             </div>
         </aside>
 
-        <!-- ÁREA DE CONTENIDO PRINCIPAL (X Style Feed) -->
+        <!-- ÁREA DE CONTENIDO PRINCIPAL -->
         <main class="main-content">
             <header class="top-bar">
                 <div class="top-bar-left">
@@ -77,12 +75,10 @@
                 </div>
             </header>
 
-            <div id="view-container">
-                <!-- Se inyectan vistas aquí -->
-            </div>
+            <div id="view-container"></div>
         </main>
 
-        <!-- SIDEBAR DERECHO (Widgets) -->
+        <!-- SIDEBAR DERECHO -->
         <aside class="sidebar-right">
             <div class="sidebar-right-inner">
                 <div class="widget">
@@ -96,7 +92,7 @@
             </div>
         </aside>
 
-        <!-- NAVEGACIÓN INFERIOR (Mobile) -->
+        <!-- MOBILE BOTTOM NAV (solo <768px) -->
         <nav class="bottom-nav">
             <button class="nav-item nav-item--mobile active" data-view="home">
                 <i data-lucide="home" class="nav-icon"></i><span>Inicio</span>
@@ -104,13 +100,13 @@
             <button class="nav-item nav-item--mobile" data-view="niches">
                 <i data-lucide="compass" class="nav-icon"></i><span>Explorar</span>
             </button>
-            <button class="nav-item nav-item--mobile btn-compose-mobile" onclick="UI.focusComposer()">
+            <button class="nav-item nav-item--mobile btn-compose-mobile" onclick="App.focusComposer()">
                 <div class="fab-inner">
                    <i data-lucide="plus" class="nav-icon"></i>
                 </div>
             </button>
-            <button class="nav-item nav-item--mobile" data-view="brain">
-                <i data-lucide="brain" class="nav-icon"></i><span>Cerebro</span>
+            <button class="nav-item nav-item--mobile" data-view="notifications">
+                <i data-lucide="bell" class="nav-icon"></i><span>Alertas</span>
             </button>
             <button class="nav-item nav-item--mobile" data-view="profile">
                 <i data-lucide="user" class="nav-icon"></i><span>Perfil</span>
@@ -118,10 +114,8 @@
         </nav>
     </div>
 
-    <!-- TOAST -->
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    <!-- MODAL CUSTOM -->
     <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
         <div class="modal">
             <p id="modal-message" class="modal-message"></p>

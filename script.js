@@ -1,19 +1,40 @@
 /**
- * NOTEBING - CORE ENGINE v4
+ * NOTEBING - CORE ENGINE vFinal
  * 
- * Cambios recientes:
- * - SPA Avanzada: Router acepta params. 
- * - Vistas dinámicas: userProfile y nicheDetail.
- * - Píldoras de filtro en el feed (Home).
+ * Architecture: Strict bounded contexts.
+ * Features: SPA Router, Notification System, Notion-like Block Editor with HTML5 DnD.
+ * Animations: Hardware-accelerated iOS 26.1 Spring View Transitions.
  */
 
 /* ==========================================================================
-   1. STATE MANAGEMENT
+   1. UTILS & SECURITY (Pure Functions)
+   ========================================================================== */
+const Utils = {
+    escapeMap: { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '/': '&#x2F;', '`': '&#96;' },
+    escapeRegex: /[&<>"'\/`]/g,
+    escapeHTML(str) {
+        if (typeof str !== 'string') return '';
+        return str.replace(this.escapeRegex, ch => this.escapeMap[ch]);
+    },
+    timeAgo(ts) {
+        const diff = Math.floor((Date.now() - ts) / 1000);
+        if (diff < 60)    return '1m';
+        if (diff < 3600)  return `${Math.floor(diff / 60)}m`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+        return `${Math.floor(diff / 86400)}d`;
+    },
+    generateId(prefix = 'id') {
+        return `${prefix}_${Math.random().toString(36).substr(2, 9)}_${Date.now()}`;
+    }
+};
+
+/* ==========================================================================
+   2. STATE MANAGEMENT (Single Source of Truth)
    ========================================================================== */
 const AppState = {
     currentView: 'home',
     currentParam: null,
-    currentFilter: 'for_you', // for_you, following, o ID del nicho
+    currentFilter: 'for_you',
     isPublishing: false,
     currentUser: {
         id: 'u_me', handle: 'tu_usuario', name: 'Tú', avatar: 'T',
@@ -21,20 +42,33 @@ const AppState = {
         followersCount: 342, followingCount: 128,
         likedNotes: new Set(), savedNotes: new Set(), renotedNotes: new Set(),
         followedUsers: new Set(), followedNiches: new Set(),
-        ownNotes: new Set()
+        ownNotes: new Set(),
+        
+        folders: [
+            { id: 'f_cerebro', name: 'Mi Cerebro (Privadas)', icon: 'brain', isPrivate: true },
+            { id: 'f_public', name: 'Notas Públicas', icon: 'globe', isPrivate: false }
+        ],
+        followerAccess: {},
+        profileBlocks: [
+            { id: 'b_1', type: 'h1', content: '¡Hola! Soy Yo 👋' },
+            { id: 'b_2', type: 'h3', content: 'Senior Developer' },
+            { id: 'b_3', type: 'text', content: 'Este es mi perfil atómico. Explora mis carpetas.' },
+            { id: 'b_4', type: 'folder', content: 'f_public' }
+        ]
     },
     users: {},
     niches: {},
-    notes: {}
+    notes: {},
+    notifications: []
 };
 
 /* ==========================================================================
-   2. DATA LAYER (API Simulation)
+   3. DATA SERVICE (Mock API)
    ========================================================================== */
-const ApiService = {
+const DataService = {
     async publish(content, visibility, nicheId) {
         return new Promise(res => setTimeout(() => {
-            const id = `n_${Date.now()}`;
+            const id = Utils.generateId('n');
             const note = {
                 id, authorId: 'u_me', content, visibility, nicheId,
                 likesCount: 0, renotesCount: 0,
@@ -57,60 +91,333 @@ const ApiService = {
             else if (text.match(/\b(gym|lift|run|food|health|diet|fitness)\b/)) res('fitness');
             else res('productivity');
         }, 1200));
+    },
+
+    addNotification(type, message, relatedId = null) {
+        AppState.notifications.unshift({
+            id: Utils.generateId('notif'),
+            type, // 'like', 'follow', 'renote'
+            message,
+            relatedId,
+            timestamp: Date.now(),
+            read: false
+        });
+        UI.updateBadge();
     }
 };
 
 /* ==========================================================================
-   3. MODAL SYSTEM
+   4. UI COMPONENTS (Reusable Modals, Toasts)
    ========================================================================== */
-const Modal = {
-    _resolve: null,
-    _el: {
-        overlay:   () => document.getElementById('modal-overlay'),
-        message:   () => document.getElementById('modal-message'),
+const UI = {
+    _modalResolve: null,
+    els: {
+        toast: () => document.getElementById('toast'),
+        overlay: () => document.getElementById('modal-overlay'),
+        message: () => document.getElementById('modal-message'),
         inputWrap: () => document.getElementById('modal-input-wrap'),
-        input:     () => document.getElementById('modal-input'),
-        confirm:   () => document.getElementById('modal-confirm'),
-        cancel:    () => document.getElementById('modal-cancel'),
+        input: () => document.getElementById('modal-input'),
+        confirm: () => document.getElementById('modal-confirm'),
+        cancel: () => document.getElementById('modal-cancel'),
+        notifCount: () => document.getElementById('notif-count')
     },
+    
     init() {
-        this._el.confirm().addEventListener('click', () => this._close(true));
-        this._el.cancel().addEventListener('click',  () => this._close(false));
-        this._el.overlay().addEventListener('click', (e) => {
-            if (e.target === this._el.overlay()) this._close(false);
+        this.els.confirm().addEventListener('click', () => this._closeModal(true));
+        this.els.cancel().addEventListener('click', () => this._closeModal(false));
+        this.els.overlay().addEventListener('click', (e) => {
+            if (e.target === this.els.overlay()) this._closeModal(false);
         });
     },
-    confirm(message, danger = true) {
-        this._el.message().innerHTML = message;
-        this._el.inputWrap().classList.add('hidden');
-        this._el.confirm().textContent = 'Eliminar';
-        this._el.confirm().className = 'btn-primary' + (danger ? ' btn--danger' : '');
-        this._el.overlay().classList.remove('hidden');
-        return new Promise(res => { this._resolve = res; });
+
+    showToast(htmlMsg) {
+        const t = this.els.toast();
+        if (!t) return;
+        t.innerHTML = htmlMsg;
+        App.initIcons(); 
+        t.classList.add('show');
+        clearTimeout(this._toastTimer);
+        this._toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
     },
-    prompt(message, currentValue = '') {
-        this._el.message().innerHTML = message;
-        this._el.inputWrap().classList.remove('hidden');
-        this._el.input().value = currentValue;
-        this._el.confirm().textContent = 'Guardar';
-        this._el.confirm().className = 'btn-primary';
-        this._el.overlay().classList.remove('hidden');
-        setTimeout(() => this._el.input().focus(), 50);
-        return new Promise(res => { this._resolve = res; });
+
+    updateBadge() {
+        const unread = AppState.notifications.filter(n => !n.read).length;
+        const badge = this.els.notifCount();
+        if (badge) {
+            badge.textContent = unread;
+            badge.style.display = unread > 0 ? 'flex' : 'none';
+        }
     },
-    _close(confirmed) {
-        const value = confirmed
-            ? (this._el.inputWrap().classList.contains('hidden') ? true : this._el.input().value.trim())
-            : null;
-        this._el.overlay().classList.add('hidden');
-        this._el.input().value = '';
-        if (this._resolve) this._resolve(value);
-        this._resolve = null;
+
+    async confirm(msg, danger = true) {
+        this.els.message().innerHTML = msg;
+        this.els.inputWrap().classList.add('hidden');
+        this.els.confirm().textContent = 'Eliminar';
+        this.els.confirm().className = 'btn-primary' + (danger ? ' btn--danger' : '');
+        this.els.overlay().classList.remove('hidden');
+        App.initIcons();
+        return new Promise(res => { this._modalResolve = res; });
+    },
+
+    async prompt(msg, currentVal = '') {
+        this.els.message().innerHTML = msg;
+        this.els.inputWrap().classList.remove('hidden');
+        this.els.input().value = currentVal;
+        this.els.confirm().textContent = 'Guardar';
+        this.els.confirm().className = 'btn-primary';
+        this.els.overlay().classList.remove('hidden');
+        setTimeout(() => this.els.input().focus(), 50);
+        App.initIcons();
+        return new Promise(res => { this._modalResolve = res; });
+    },
+
+    async selectFolder(msg, folders) {
+        const wrap = this.els.inputWrap();
+        this.els.message().innerHTML = msg;
+        wrap.classList.remove('hidden');
+
+        wrap.innerHTML = `
+            <div class="folder-select-list">
+                ${folders.map((f, i) => `
+                    <label class="folder-option" data-folder-id="${f.id}">
+                        <input type="radio" name="folder-select" value="${f.id}" ${i === 0 ? 'checked' : ''}>
+                        <div class="folder-option-inner">
+                            <i data-lucide="${f.icon}" style="width:18px;height:18px;color:var(--accent-primary);"></i>
+                            <span>${Utils.escapeHTML(f.name)}</span>
+                        </div>
+                    </label>
+                `).join('')}
+            </div>
+        `;
+
+        this.els.confirm().textContent = 'Confirmar';
+        this.els.confirm().className = 'btn-primary';
+        this.els.overlay().classList.remove('hidden');
+        App.initIcons();
+
+        return new Promise(res => {
+            this._modalResolve = (confirmed) => {
+                if (!confirmed) { res(null); return; }
+                const checked = document.querySelector('input[name="folder-select"]:checked');
+                res(checked ? checked.value : null);
+            };
+        });
+    },
+
+    async addBlockMenu() {
+        const wrap = this.els.inputWrap();
+        this.els.message().innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><i data-lucide="blocks"></i> Añadir Bloque</div>';
+        wrap.classList.remove('hidden');
+        
+        wrap.innerHTML = `
+            <div class="folder-select-list">
+                <label class="folder-option"><input type="radio" name="block-type" value="text" checked><div class="folder-option-inner"><i data-lucide="type"></i> Texto</div></label>
+                <label class="folder-option"><input type="radio" name="block-type" value="h1"><div class="folder-option-inner"><b>H1</b> Título Principal</div></label>
+                <label class="folder-option"><input type="radio" name="block-type" value="h2"><div class="folder-option-inner"><b>H2</b> Subtítulo</div></label>
+                <label class="folder-option"><input type="radio" name="block-type" value="h3"><div class="folder-option-inner"><b>H3</b> Sección</div></label>
+                <label class="folder-option"><input type="radio" name="block-type" value="quote"><div class="folder-option-inner"><i data-lucide="quote"></i> Cita / Quote</div></label>
+                <label class="folder-option"><input type="radio" name="block-type" value="divider"><div class="folder-option-inner"><i data-lucide="minus"></i> Divisor</div></label>
+                <label class="folder-option"><input type="radio" name="block-type" value="folder"><div class="folder-option-inner"><i data-lucide="folder"></i> Acceso a Carpeta</div></label>
+            </div>
+        `;
+        this.els.confirm().textContent = 'Añadir';
+        this.els.confirm().className = 'btn-primary';
+        this.els.overlay().classList.remove('hidden');
+        App.initIcons();
+
+        return new Promise(res => {
+            this._modalResolve = (confirmed) => {
+                if (!confirmed) { res(null); return; }
+                const checked = document.querySelector('input[name="block-type"]:checked');
+                res(checked ? checked.value : null);
+            };
+        });
+    },
+
+    _closeModal(confirmed) {
+        if (typeof this._modalResolve === 'function') {
+            this._modalResolve(confirmed);
+        } else if (this._modalResolve) {
+            const val = confirmed
+                ? (this.els.inputWrap().classList.contains('hidden') ? true : this.els.input().value.trim())
+                : null;
+            this._modalResolve(val);
+        }
+
+        this.els.overlay().classList.add('hidden');
+        
+        // Restore standard textarea
+        const wrap = this.els.inputWrap();
+        if (!wrap.querySelector('#modal-input')) {
+            wrap.innerHTML = '<textarea id="modal-input" class="modal-textarea" rows="4"></textarea>';
+        }
+        const input = this.els.input();
+        if (input) input.value = '';
+
+        this._modalResolve = null;
     }
 };
 
 /* ==========================================================================
-   4. VIEW MODULES (SPA Engine)
+   5. NOTION BLOCK EDITOR ENGINE
+   ========================================================================== */
+const BlockEditor = {
+    isEditMode: false,
+    draggedBlockIndex: null,
+
+    toggleEditMode() {
+        this.isEditMode = !this.isEditMode;
+        Views.userProfile.renderProfileContent(); // Re-render local content
+    },
+
+    renderBlock(block, index, allowEdit) {
+        let contentHtml = '';
+        
+        if (block.type === 'divider') {
+            contentHtml = '<hr class="block-content block-divider" data-type="divider">';
+        } else if (block.type === 'folder') {
+            const f = AppState.currentUser.folders.find(fol => fol.id === block.content);
+            if (f) {
+                contentHtml = `<div class="block-content block-folder" data-type="folder"><i data-lucide="${f.icon}"></i> ${Utils.escapeHTML(f.name)}</div>`;
+            } else {
+                contentHtml = `<div class="block-content block-folder" data-type="folder" style="opacity:0.5"><i data-lucide="folder-x"></i> Carpeta No Encontrada</div>`;
+            }
+        } else {
+            // Text based blocks (h1, h2, h3, text, quote)
+            const tag = ['h1','h2','h3'].includes(block.type) ? block.type : (block.type === 'quote' ? 'blockquote' : 'p');
+            contentHtml = `<${tag} class="block-content" data-type="${block.type}">${Utils.escapeHTML(block.content)}</${tag}>`;
+        }
+
+        const editUIMarkup = allowEdit ? `
+            <div class="block-handle" draggable="true" data-index="${index}">
+                <i data-lucide="grip-vertical"></i>
+                <div class="block-handle-arrows">
+                   <i data-lucide="chevron-up" class="arrow-up" data-index="${index}"></i>
+                   <i data-lucide="chevron-down" class="arrow-down" data-index="${index}"></i>
+                </div>
+            </div>
+            <div class="block-actions">
+                ${block.type !== 'divider' && block.type !== 'folder' ? `<button class="opt-btn" data-editor-action="edit" data-index="${index}" title="Editar Mapeo"><i data-lucide="pencil" style="width:14px;height:14px"></i></button>` : ''}
+                <button class="opt-btn" data-editor-action="delete" data-index="${index}" title="Eliminar"><i data-lucide="trash-2" style="width:14px;height:14px;color:var(--danger-color)"></i></button>
+            </div>
+        ` : '';
+
+        return `
+            <div class="block-wrapper ${allowEdit ? 'is-edit-mode' : ''}" data-index="${index}">
+                ${editUIMarkup}
+                ${contentHtml}
+            </div>
+        `;
+    },
+
+    bindEvents(container) {
+        if (!this.isEditMode) return;
+
+        // Drag and Drop implementation
+        const handles = container.querySelectorAll('.block-handle');
+        handles.forEach(handle => {
+            handle.addEventListener('dragstart', (e) => {
+                this.draggedBlockIndex = parseInt(e.target.closest('.block-handle').dataset.index);
+                e.target.closest('.block-wrapper').style.opacity = '0.5';
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            handle.addEventListener('dragend', (e) => {
+                e.target.closest('.block-wrapper').style.opacity = '1';
+                this.draggedBlockIndex = null;
+            });
+        });
+
+        const wrappers = container.querySelectorAll('.block-wrapper');
+        wrappers.forEach(wrapper => {
+            wrapper.addEventListener('dragover', (e) => {
+                e.preventDefault(); 
+                e.dataTransfer.dropEffect = 'move';
+            });
+            wrapper.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (this.draggedBlockIndex === null) return;
+                const dropIndex = parseInt(wrapper.dataset.index);
+                if (dropIndex === this.draggedBlockIndex) return;
+
+                const blocks = AppState.currentUser.profileBlocks;
+                const moved = blocks.splice(this.draggedBlockIndex, 1)[0];
+                blocks.splice(dropIndex, 0, moved);
+                
+                Views.userProfile.renderProfileContent();
+            });
+        });
+
+        container.addEventListener('click', async (e) => {
+            const btn = e.target.closest('[data-editor-action]');
+            if (btn) {
+                const action = btn.dataset.editorAction;
+                if (action === 'add') await this.addBlock();
+                if (action === 'edit') await this.editBlock(parseInt(btn.dataset.index));
+                if (action === 'delete') this.deleteBlock(parseInt(btn.dataset.index));
+            }
+            
+            // Fallback arrows support
+            const arrowUp = e.target.closest('.arrow-up');
+            if (arrowUp) this.moveBlock(parseInt(arrowUp.dataset.index), -1);
+            
+            const arrowDown = e.target.closest('.arrow-down');
+            if (arrowDown) this.moveBlock(parseInt(arrowDown.dataset.index), 1);
+        });
+    },
+
+    moveBlock(index, dir) {
+        const blocks = AppState.currentUser.profileBlocks;
+        const target = index + dir;
+        if (target < 0 || target >= blocks.length) return;
+        const temp = blocks[index];
+        blocks[index] = blocks[target];
+        blocks[target] = temp;
+        Views.userProfile.renderProfileContent();
+    },
+
+    async addBlock() {
+        const type = await UI.addBlockMenu();
+        if (!type) return;
+
+        let content = '';
+        if (type !== 'divider') {
+            if (type === 'folder') {
+                const fid = await UI.selectFolder('<i data-lucide="folder"></i> Mapear Carpeta', AppState.currentUser.folders);
+                if (!fid) return;
+                content = fid;
+            } else {
+                content = await UI.prompt('<i data-lucide="type"></i> Escribe el contenido del bloque:');
+                if (!content) return;
+            }
+        }
+        
+        AppState.currentUser.profileBlocks.push({ id: Utils.generateId('b'), type, content });
+        Views.userProfile.renderProfileContent();
+        UI.showToast('<i data-lucide="check"></i> Bloque añadido');
+    },
+
+    async editBlock(index) {
+        const block = AppState.currentUser.profileBlocks[index];
+        const newText = await UI.prompt('<i data-lucide="edit-3"></i> Editar contenido:', block.content);
+        if (newText !== null && newText !== '') {
+            block.content = newText;
+            Views.userProfile.renderProfileContent();
+        }
+    },
+
+    async deleteBlock(index) {
+        const block = AppState.currentUser.profileBlocks[index];
+        if (block.type === 'folder') {
+            const conf = await UI.confirm('<div style="display:flex;align-items:center;gap:8px;"><i data-lucide="alert-triangle"></i> ¿Borrar acceso a carpeta? Las notas no se perderán.</div>');
+            if (!conf) return;
+        }
+        AppState.currentUser.profileBlocks.splice(index, 1);
+        Views.userProfile.renderProfileContent();
+    }
+};
+
+/* ==========================================================================
+   6. VIEWS
    ========================================================================== */
 const Views = {
     home: {
@@ -119,7 +426,7 @@ const Views = {
             <div class="composer">
                 <div class="avatar avatar--md">T</div>
                 <div class="composer-body">
-                    <textarea id="note-input" placeholder="¿Qué estás aprendiendo?"></textarea>
+                    <textarea id="note-input" placeholder="¿Qué estás descubriendo hoy?"></textarea>
                     <div class="composer-actions">
                         <div class="select-group">
                             <div class="pill-select-wrapper">
@@ -134,9 +441,7 @@ const Views = {
                                 <i data-lucide="sparkles" class="select-icon"></i>
                                 <select id="note-niche" class="pill-select" style="padding-left: 28px;">
                                     <option value="">IA Automático</option>
-                                    ${Object.values(AppState.niches).map(n =>
-                                        `<option value="${n.id}">${App.escapeHTML(n.name)}</option>`
-                                    ).join('')}
+                                    ${Object.values(AppState.niches).map(n => `<option value="${n.id}">${Utils.escapeHTML(n.name)}</option>`).join('')}
                                 </select>
                             </div>
                         </div>
@@ -144,101 +449,71 @@ const Views = {
                     </div>
                 </div>
             </div>
-            
-            <!-- Feed Filters (JS Injected) -->
             <div class="feed-filters-wrapper">
                <div class="feed-filters" id="home-filters"></div>
             </div>
-
             <div id="feed-container" class="feed-container"></div>
         `,
         onMount: () => {
-            App.bindComposer();
-            
-            // Build Filter Pills
-            const filterContainer = document.getElementById('home-filters');
-            if (filterContainer) {
-                let pillsHTML = `
-                   <button class="filter-pill ${AppState.currentFilter === 'for_you' ? 'active' : ''}" data-filter="for_you">Para ti</button>
-                   <button class="filter-pill ${AppState.currentFilter === 'following' ? 'active' : ''}" data-filter="following">Siguiendo</button>
-                `;
-                Object.values(AppState.niches).forEach(n => {
-                   pillsHTML += `<button class="filter-pill ${AppState.currentFilter === n.id ? 'active' : ''}" data-filter="${n.id}">${App.escapeHTML(n.name)}</button>`;
-                });
-                filterContainer.innerHTML = pillsHTML;
-
-                filterContainer.addEventListener('click', e => {
-                   const btn = e.target.closest('.filter-pill');
-                   if(!btn) return;
-                   
-                   AppState.currentFilter = btn.dataset.filter;
-                   filterContainer.querySelectorAll('.filter-pill').forEach(el => el.classList.remove('active'));
-                   btn.classList.add('active');
-                   
-                   window.scrollTo({ top: 0, behavior: 'smooth' }); // Return to top when filtering
-                   App.renderFeed();
-                });
-            }
-
-            App.renderFeed();
+             const btn = document.getElementById('btn-publish');
+             if (btn) btn.addEventListener('click', () => App.handlePublish());
+             
+             const filterContainer = document.getElementById('home-filters');
+             if (filterContainer) {
+                 let pillsHTML = `
+                    <button class="filter-pill ${AppState.currentFilter === 'for_you' ? 'active' : ''}" data-filter="for_you">Para ti</button>
+                    <button class="filter-pill ${AppState.currentFilter === 'following' ? 'active' : ''}" data-filter="following">Siguiendo</button>
+                 `;
+                 Object.values(AppState.niches).forEach(n => {
+                    pillsHTML += `<button class="filter-pill ${AppState.currentFilter === n.id ? 'active' : ''}" data-filter="${n.id}">${Utils.escapeHTML(n.name)}</button>`;
+                 });
+                 filterContainer.innerHTML = pillsHTML;
+ 
+                 filterContainer.addEventListener('click', e => {
+                    const pill = e.target.closest('.filter-pill');
+                    if(!pill) return;
+                    AppState.currentFilter = pill.dataset.filter;
+                    filterContainer.querySelectorAll('.filter-pill').forEach(el => el.classList.remove('active'));
+                    pill.classList.add('active');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    App.renderFeed();
+                 });
+             }
+             App.renderFeed();
         }
     },
 
-    niches: {
-        title: "Tus Nichos",
+    notifications: {
+        title: "Notificaciones",
         render: () => `
             <div style="padding: 24px;">
-                <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 24px;">Explorar Nichos</h2>
-                <div class="niches-grid">
-                    ${Object.values(AppState.niches).map(n => `
-                        <div class="widget niche-card niche-link" data-niche-id="${n.id}" style="margin-bottom: 0; cursor: pointer;">
-                            <div style="display: flex; align-items: center; gap: 16px; flex: 1;">
-                                <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--accent-alpha); color: var(--accent-primary); display: flex; align-items: center; justify-content: center;">
-                                    <i data-lucide="${n.icon}" style="width: 24px; height: 24px;"></i>
-                                </div>
-                                <div>
-                                    <div style="font-weight: 700;">${App.escapeHTML(n.name)}</div>
-                                    <div style="font-size: 13px; color: var(--text-secondary);">${n.followersCount.toLocaleString()} notas</div>
-                                </div>
-                            </div>
-                            <button class="btn-follow ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''} z-button" data-type="niche" data-id="${n.id}">
-                                ${AppState.currentUser.followedNiches.has(n.id) ? 'Siguiendo' : 'Seguir'}
-                            </button>
-                        </div>
-                    `).join('')}
-                </div>
+                <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 24px;">Tus Alertas</h2>
+                <div id="notif-container" style="display:flex; flex-direction:column; background:var(--bg-glass-strong); border-radius:var(--radius-lg); overflow:hidden; border:1px solid var(--border-color);"></div>
             </div>
         `,
-        onMount: () => {}
-    },
-
-    nicheDetail: {
-        title: (id) => {
-            const niche = AppState.niches[id];
-            return niche ? niche.name : "Nicho";
-        },
-        render: (id) => {
-            const n = AppState.niches[id];
-            if (!n) return `<div class="empty-state">Nicho no encontrado</div>`;
-            return `
-                <div style="padding: 32px 24px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 16px;">
-                        <div style="width: 56px; height: 56px; border-radius: 16px; background: var(--accent-alpha); color: var(--accent-primary); display: flex; align-items: center; justify-content: center;">
-                            <i data-lucide="${n.icon}" style="width: 32px; height: 32px;"></i>
+        onMount: () => {
+            const container = document.getElementById('notif-container');
+            if (AppState.notifications.length === 0) {
+                container.innerHTML = `<div class="empty-state" style="padding:40px; text-align:center; color:var(--text-secondary);"><i data-lucide="bell" style="width:40px; height:40px; opacity:0.5; margin-bottom:16px;"></i><div>Sin actividad reciente.</div></div>`;
+            } else {
+                container.innerHTML = AppState.notifications.map(n => `
+                    <div class="notif-item ${!n.read ? 'unread' : ''}">
+                        <div class="notif-icon-wrap ${n.type}">
+                            <i data-lucide="${n.type === 'like' ? 'heart' : (n.type === 'renote' ? 'repeat-2' : 'user-plus')}"></i>
                         </div>
                         <div>
-                            <h2 style="font-size: 24px; font-weight: 800;">${App.escapeHTML(n.name)}</h2>
-                            <div style="font-size: 15px; color: var(--text-secondary);">${n.followersCount.toLocaleString()} notas publicadas</div>
+                            <div style="font-size:15px; color:var(--text-primary); line-height:1.4;">${n.message}</div>
+                            <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">${Utils.timeAgo(n.timestamp)}</div>
                         </div>
                     </div>
-                    <button class="btn-follow ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''}" data-type="niche" data-id="${n.id}">
-                        ${AppState.currentUser.followedNiches.has(n.id) ? 'Siguiendo' : 'Seguir'}
-                    </button>
-                </div>
-                <div id="feed-container" class="feed-container"></div>
-            `;
-        },
-        onMount: () => App.renderFeed()
+                `).join('');
+                
+                // Mark all as read
+                AppState.notifications.forEach(n => n.read = true);
+                UI.updateBadge();
+            }
+            App.initIcons();
+        }
     },
 
     brain: {
@@ -256,126 +531,237 @@ const Views = {
         onMount: () => App.renderFeed()
     },
 
-    profile: {
-        title: "Perfil",
-        render: () => Views.userProfile.render('u_me'),
+    niches: {
+        title: "Explorar Nichos",
+        render: () => `
+            <div style="padding: 24px;">
+                <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 24px;">Descubrir</h2>
+                <div class="niches-grid" style="display: grid; grid-template-columns: 1fr; gap: 16px;">
+                    ${Object.values(AppState.niches).map(n => `
+                        <div class="widget niche-card niche-link" data-niche-id="${n.id}" style="margin-bottom: 0; cursor: pointer;">
+                            <div style="display: flex; align-items: center; gap: 16px; flex: 1;">
+                                <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--accent-alpha); color: var(--accent-primary); display: flex; align-items: center; justify-content: center;">
+                                    <i data-lucide="${n.icon}" style="width: 24px; height: 24px;"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700;">${Utils.escapeHTML(n.name)}</div>
+                                    <div style="font-size: 13px; color: var(--text-secondary);">${n.followersCount.toLocaleString()} notas</div>
+                                </div>
+                            </div>
+                            <button class="btn-follow ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''} z-button" data-type="niche" data-id="${n.id}">
+                                ${AppState.currentUser.followedNiches.has(n.id) ? 'Siguiendo' : 'Seguir'}
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `,
+        onMount: () => {
+            const style = document.createElement('style');
+            style.textContent = `@media (min-width: 600px) { .niches-grid { grid-template-columns: 1fr 1fr !important; } } .niche-card { display: flex; align-items: center; justify-content: space-between; transition: all var(--transition-fast); } .niche-card:hover { box-shadow: var(--shadow-card-hover); transform: translateY(-2px); }`;
+            document.head.appendChild(style);
+        }
+    },
+    
+    nicheDetail: {
+        title: (id) => AppState.niches[id] ? AppState.niches[id].name : "Nicho",
+        render: (id) => {
+            const n = AppState.niches[id];
+            if (!n) return `<div class="empty-state">Nicho no encontrado</div>`;
+            return `
+                <div style="padding: 32px 24px; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <div style="width: 56px; height: 56px; border-radius: 16px; background: var(--accent-alpha); color: var(--accent-primary); display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="${n.icon}" style="width: 32px; height: 32px;"></i>
+                        </div>
+                        <div>
+                            <h2 style="font-size: 24px; font-weight: 800;">${Utils.escapeHTML(n.name)}</h2>
+                            <div style="font-size: 15px; color: var(--text-secondary);">${n.followersCount.toLocaleString()} contribuciones</div>
+                        </div>
+                    </div>
+                    <button class="btn-follow ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''}" data-type="niche" data-id="${n.id}">
+                        ${AppState.currentUser.followedNiches.has(n.id) ? 'Siguiendo' : 'Seguir'}
+                    </button>
+                </div>
+                <div id="feed-container" class="feed-container"></div>
+            `;
+        },
         onMount: () => App.renderFeed()
     },
 
+    profile: {
+        title: "Tu Perfil",
+        render: () => Views.userProfile.render('u_me'),
+        onMount: () => Views.userProfile.onMount('u_me')
+    },
+
     userProfile: {
-        title: (id) => {
-            const u = id === 'u_me' ? AppState.currentUser : AppState.users[id];
-            return u ? u.name : "Perfil";
-        },
+        title: (id) => id === 'u_me' ? 'Tu Perfil' : (AppState.users[id]?.name || "Perfil"),
         render: (id) => {
-            const u = id === 'u_me' ? AppState.currentUser : AppState.users[id];
+            const isMe = id === 'u_me';
+            const u = isMe ? AppState.currentUser : AppState.users[id];
             if (!u) return `<div class="empty-state">Usuario no encontrado</div>`;
             
-            const isMe = id === 'u_me';
-            const isFollowing = AppState.currentUser.followedUsers.has(id);
-            const avatarContent = u.avatar && u.avatar.startsWith('http')
-                ? `<img src="${u.avatar}" alt="${App.escapeHTML(u.name)}" loading="lazy">`
-                : App.escapeHTML(u.avatar || '?');
-
             return `
-                <div style="padding: 32px 24px;">
-                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 32px; position: relative;">
-                        ${!isMe ? `
-                        <div style="position: absolute; right: 0; top: 0;">
-                             <button class="btn-follow ${isFollowing ? 'following' : ''}" data-type="user" data-id="${u.id}">
-                                 ${isFollowing ? 'Siguiendo' : 'Seguir'}
-                             </button>
-                        </div>
-                        ` : ''}
-                        
-                        <div class="avatar avatar--lg" style="margin-bottom: 16px;">${avatarContent}</div>
-                        <h2 style="font-size: 24px; font-weight: 800;">${App.escapeHTML(u.name)}</h2>
-                        <p style="color: var(--text-secondary);">@${App.escapeHTML(u.handle)}</p>
-                        <p style="margin-top: 16px; font-size: 15px; max-width: 320px;">${App.escapeHTML(u.bio)}</p>
-                        <div style="display: flex; gap: 40px; margin-top: 24px; background: var(--bg-surface-hover); padding: 16px 32px; border-radius: var(--radius-lg);">
-                            <div style="text-align: center;">
-                                <div style="font-weight: 800; font-size: 20px;">${u.followingCount}</div>
-                                <div style="font-size: 13px; font-weight: 500; color: var(--text-secondary);">Siguiendo</div>
+                <div style="padding: 32px 24px 0 24px;">
+                    <div style="position: relative; margin-bottom: 24px;">
+                        ${isMe ? `
+                            <div style="position: absolute; right: 0; top: 0; z-index: 10;">
+                                <button class="icon-btn btn-secondary" id="btn-edit-profile" title="Modo Builder">
+                                    <i data-lucide="edit-3"></i>
+                                </button>
                             </div>
-                            <div style="text-align: center;">
-                                <div style="font-weight: 800; font-size: 20px;">${u.followersCount}</div>
-                                <div style="font-size: 13px; font-weight: 500; color: var(--text-secondary);">Seguidores</div>
+                        ` : ''}
+                        <div class="avatar avatar--lg" style="margin-bottom: 24px;">${u.avatar.startsWith('http') ? `<img src="${u.avatar}">` : Utils.escapeHTML(u.avatar)}</div>
+                        <h2 style="font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">${Utils.escapeHTML(u.name)}</h2>
+                        <p style="color: var(--text-secondary); font-size:15px;">@${Utils.escapeHTML(u.handle)}</p>
+                        
+                        <div style="display: flex; gap: 32px; margin-top: 16px;">
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <span style="font-weight: 800; color:var(--text-primary);">${u.followingCount}</span>
+                                <span style="font-size: 14px; color: var(--text-secondary);">Siguiendo</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <span style="font-weight: 800; color:var(--text-primary);">${u.followersCount}</span>
+                                <span style="font-size: 14px; color: var(--text-secondary);">Seguidores</span>
                             </div>
                         </div>
                     </div>
-                    <h3 style="font-weight: 800; font-size: 18px; margin-bottom: 16px; padding: 0 16px;">${isMe ? 'Mis Notas' : 'Notas de ' + App.escapeHTML(u.name.split(' ')[0])}</h3>
+                </div>
+                
+                <div id="profile-dynamic-content" style="padding: 0 24px var(--space-xl) 24px;">
+                    <!-- Render Block Engine -->
+                </div>
+                
+                <div style="border-top: 1px solid var(--border-color); margin-top:16px;">
+                    <h3 style="font-weight: 800; font-size: 18px; margin-bottom: 16px; padding: 24px 24px 0;">Últimas Notas</h3>
                     <div id="feed-container" class="feed-container"></div>
                 </div>
             `;
         },
-        onMount: () => App.renderFeed()
+        onMount: (id) => {
+            BlockEditor.isEditMode = false;
+            if (id === 'u_me') {
+                const btnEdit = document.getElementById('btn-edit-profile');
+                if (btnEdit) btnEdit.addEventListener('click', () => {
+                    BlockEditor.toggleEditMode();
+                    btnEdit.innerHTML = BlockEditor.isEditMode ? '<i data-lucide="check" style="color:var(--success-color)"></i>' : '<i data-lucide="edit-3"></i>';
+                    App.initIcons();
+                });
+            }
+            Views.userProfile.renderProfileContent(id);
+            App.renderFeed();
+        },
+        renderProfileContent: (idParam) => {
+            const id = AppState.currentView === 'profile' ? 'u_me' : (idParam || AppState.currentParam);
+            const container = document.getElementById('profile-dynamic-content');
+            if(!container) return;
+            
+            const isMe = id === 'u_me';
+            
+            // Logic for Lock / Render blocks
+            if (!isMe) {
+                // Mock user profile block injection for others
+                container.innerHTML = `<div class="block-content block-text" data-type="text">${Utils.escapeHTML(AppState.users[id].bio)}</div>
+                <div style="margin-top:24px;">
+                    <button class="btn-primary btn-follow ${AppState.currentUser.followedUsers.has(id)?'following':''}" data-type="user" data-id="${id}" style="width:100%;">
+                        ${AppState.currentUser.followedUsers.has(id)?'Siguiendo':'Seguir Perfil'}
+                    </button>
+                </div>`;
+                App.initIcons();
+                return;
+            }
+
+            // IS ME (My Profile Block Engine)
+            const publicFolders = AppState.currentUser.folders.filter(f => !f.isPrivate);
+            const hasPublicFolders = publicFolders.length > 0;
+
+            let html = `<div class="block-list">`;
+            AppState.currentUser.profileBlocks.forEach((b, i) => {
+                html += BlockEditor.renderBlock(b, i, BlockEditor.isEditMode);
+            });
+            html += `</div>`;
+
+            if (BlockEditor.isEditMode) {
+                html += `<button class="add-block-btn" data-editor-action="add"><i data-lucide="plus"></i> Añadir Bloque Notion</button>`;
+            }
+
+            if (!hasPublicFolders) {
+                html += `
+                    <div class="profile-locked">
+                        <i data-lucide="lock"></i>
+                        <h4 style="font-size:18px; font-weight:700; color:var(--text-primary);">Perfil Cerrado</h4>
+                        <p style="color:var(--text-secondary); font-size:14px; margin-top:8px;">No tienes carpetas públicas. Nadie podrá seguirte ni ver tu perfil.</p>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+            BlockEditor.bindEvents(container);
+            App.initIcons();
+        }
     }
 };
 
 /* ==========================================================================
-   5. ROUTER
+   7. ROUTER
    ========================================================================== */
 const Router = {
     navigate(viewName, param = null) {
         if (!Views[viewName]) return;
         AppState.currentView = viewName;
         AppState.currentParam = param;
-
-        // Reset Filter just in case
         if (viewName !== 'home') AppState.currentFilter = 'for_you';
 
+        // Update nav active states
         document.querySelectorAll('.nav-item').forEach(el => {
             if(el.dataset.view) {
-                // If it's a dynamic view like userProfile, we just un-active everything normally unless matching
                 el.classList.toggle('active', el.dataset.view === viewName || (viewName === 'userProfile' && el.dataset.view === 'profile' && param === 'u_me'));
             }
         });
 
-        // Resolve dynamic Title
+        // Set Title
         const vTitle = typeof Views[viewName].title === 'function' ? Views[viewName].title(param) : Views[viewName].title;
-        document.getElementById('view-title').textContent = vTitle;
+        const titleEl = document.getElementById('view-title');
+        if (titleEl) titleEl.textContent = vTitle;
 
+        // Render with iOS Spring Transition
         const container = document.getElementById('view-container');
-        window.scrollTo(0, 0); // Reset scroll on view change
+        window.scrollTo(0, 0);
+        
+        // Remove animation class to reset, then flush layout
+        container.classList.remove('view-enter');
+        void container.offsetWidth; 
+        
         container.innerHTML = Views[viewName].render(param);
+        container.classList.add('view-enter');
 
-        if (Views[viewName].onMount) {
-            Views[viewName].onMount(param);
-        }
+        if (Views[viewName].onMount) Views[viewName].onMount(param);
 
         App.renderSidebars();
-        App.initIcons(); // Instanciar SVG de Lucide
+        App.initIcons();
+        UI.updateBadge(); // ensure badge is updated on view switch
     }
 };
 
 /* ==========================================================================
-   6. APP CONTROLLER
+   8. APP CONTROLLER
    ========================================================================== */
 const App = {
     init() {
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) {
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            const toggleBtn = document.getElementById('theme-toggle');
-            if(savedTheme === 'dark' && toggleBtn) {
-                toggleBtn.querySelector('.theme-icon-dark').style.display = 'none';
-                toggleBtn.querySelector('.theme-icon-light').style.display = 'block';
-            }
-        }
-
         MockEngine.generate();
-        Modal.init();
+        UI.init();
         this.bindEvents();
         Router.navigate(AppState.currentView);
-        this.initIcons();
+        
+        // Simulate a welcome notification
+        setTimeout(() => {
+            DataService.addNotification('user-plus', '<b>Notebing Team</b> ha empezado a seguirte.');
+        }, 3000);
     },
 
-    get feedContainer() { return document.getElementById('feed-container'); },
-
     initIcons() {
-        if (window.lucide) {
-            window.lucide.createIcons();
-        }
+        if (window.lucide) window.lucide.createIcons();
     },
 
     bindEvents() {
@@ -388,36 +774,32 @@ const App = {
             });
         });
 
-        document.getElementById('theme-toggle').addEventListener('click', () => this.toggleTheme());
+        const toggleBtn = document.getElementById('theme-toggle');
+        if(toggleBtn) toggleBtn.addEventListener('click', () => this.toggleTheme());
 
         document.addEventListener('click', (e) => {
-            // Check for normal action buttons
-            const btn = e.target.closest('.action-btn, .opt-btn, .btn-follow, #btn-publish');
-            if (btn) {
+            const btn = e.target.closest('.action-btn, .opt-btn, .btn-follow');
+            if (btn && !btn.hasAttribute('data-editor-action')) {
                 const { action, id, type } = btn.dataset;
                 if(!btn.classList.contains('z-button')) {
                     if (action === 'like')   this.handleLike(id, btn);
                     if (action === 'save')   this.handleSave(id, btn);
                     if (action === 'delete') this.handleDelete(id);
-                    if (action === 'edit')   this.handleEdit(id);
                     if (action === 'renote') this.handleRenote(id, btn);
                 }
-
                 if (btn.classList.contains('btn-follow')) {
-                    e.stopPropagation(); // Evitar click en cards debajo
+                    e.stopPropagation();
                     if (type === 'user')  this.handleFollowUser(id, btn);
                     if (type === 'niche') this.handleFollowNiche(id, btn);
                 }
-
-                if (btn.id === 'btn-publish') this.handlePublish();
                 return;
             }
 
-            // Check for SPA custom Links (User Profile / Niche detail)
             const userLink = e.target.closest('.user-link');
             if (userLink && userLink.dataset.userId) {
                 e.stopPropagation();
                 Router.navigate('userProfile', userLink.dataset.userId);
+                return;
             }
 
             const nicheLink = e.target.closest('.niche-link');
@@ -426,11 +808,6 @@ const App = {
                 Router.navigate('nicheDetail', nicheLink.dataset.nicheId);
             }
         });
-    },
-
-    bindComposer() {
-        const btn = document.getElementById('btn-publish');
-        if (btn) btn.addEventListener('click', () => this.handlePublish());
     },
 
     focusComposer() {
@@ -444,199 +821,46 @@ const App = {
         }, 150);
     },
 
-    renderFeed() {
-        const container = this.feedContainer;
-        if (!container) return;
-        container.innerHTML = '';
-
-        let notes = Object.values(AppState.notes).sort((a, b) => b.timestamp - a.timestamp);
-
-        if (AppState.currentView === 'brain') {
-            notes = notes.filter(n => n.visibility === 'PRIVATE' || AppState.currentUser.savedNotes.has(n.id));
-        } else if (AppState.currentView === 'profile') {
-            notes = notes.filter(n => n.authorId === AppState.currentUser.id);
-        } else if (AppState.currentView === 'userProfile') {
-            const targetUser = AppState.currentParam;
-            notes = notes.filter(n => n.authorId === targetUser && n.visibility !== 'PRIVATE');
-        } else if (AppState.currentView === 'nicheDetail') {
-            const targetNiche = AppState.currentParam;
-            notes = notes.filter(n => n.nicheId === targetNiche && n.visibility !== 'PRIVATE');
-        } else if (AppState.currentView === 'home') {
-            // Apply advanced filters for HOME
-            const f = AppState.currentFilter;
-            
-            if (f === 'for_you') {
-                // Para ti (Mix de recientes globales)
-                notes = notes.filter(n => n.visibility === 'PUBLIC');
-            } else if (f === 'following') {
-                // Solo seguidos
-                notes = notes.filter(n => 
-                    n.visibility !== 'PRIVATE' &&
-                    (AppState.currentUser.followedUsers.has(n.authorId) ||
-                     AppState.currentUser.followedNiches.has(n.nicheId) ||
-                     n.authorId === AppState.currentUser.id)
-                );
-            } else {
-                // Un Nicho Específico (Filtro por píldora de nicho)
-                notes = notes.filter(n => n.visibility !== 'PRIVATE' && n.nicheId === f);
-            }
-        }
-
-        if (notes.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state" style="text-align: center; padding: 64px 24px; color: var(--text-secondary);">
-                    <i data-lucide="layers" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
-                    <div style="font-weight: 700; font-size: 18px; color: var(--text-primary); margin-bottom: 8px;">Nada por aquí</div>
-                    <div style="font-size: 15px;">Aún no hay notas en esta sección para mostrarte.</div>
-                </div>
-            `;
-            this.initIcons();
-            return;
-        }
-
-        const frag = document.createDocumentFragment();
-        notes.forEach(note => {
-            const author = AppState.users[note.authorId] || AppState.currentUser;
-            const niche  = note.nicheId ? AppState.niches[note.nicheId] : null;
-            const isOwn  = note.authorId === AppState.currentUser.id;
-            const isLiked   = AppState.currentUser.likedNotes.has(note.id);
-            const isSaved   = AppState.currentUser.savedNotes.has(note.id);
-            const isRenoted = AppState.currentUser.renotedNotes.has(note.id);
-
-            const avatarContent = author.avatar && author.avatar.startsWith('http')
-                ? `<img src="${author.avatar}" alt="${App.escapeHTML(author.name)}" loading="lazy">`
-                : App.escapeHTML(author.avatar || '?');
-
-            const div = document.createElement('div');
-            div.className = 'note-card';
-            div.innerHTML = `
-                <div class="note-header">
-                    <div class="note-author-wrap user-link" data-user-id="${author.id}">
-                        <div class="avatar avatar--md">${avatarContent}</div>
-                        <div class="note-meta">
-                            <span class="note-author">${App.escapeHTML(author.name)}
-                                <span class="note-handle">@${App.escapeHTML(author.handle)}</span>
-                            </span>
-                            <span class="note-time">${this.timeAgo(note.timestamp)}</span>
-                        </div>
-                    </div>
-                    ${isOwn ? `
-                        <div class="note-options">
-                            <button class="opt-btn edit" data-action="edit" data-id="${note.id}" title="Editar nota">
-                               <i data-lucide="pencil" style="width: 16px; height: 16px;"></i>
-                            </button>
-                            <button class="opt-btn" data-action="delete" data-id="${note.id}" title="Eliminar nota">
-                               <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
-                            </button>
-                        </div>
-                    ` : ''}
-                </div>
-                <div class="note-body">
-                    <div class="note-content">${App.escapeHTML(note.content)}</div>
-                    <div class="badges-container">
-                        ${note.isAiClassified ? `<span class="badge badge-ai"><i data-lucide="sparkles"></i> AI Suggested</span>` : ''}
-                        ${niche ? `<span class="badge badge-niche niche-link" data-niche-id="${niche.id}"><i data-lucide="${niche.icon}"></i> ${App.escapeHTML(niche.name)}</span>` : ''}
-                        ${note.visibility === 'PRIVATE' ? `<span class="badge badge-private"><i data-lucide="lock"></i> Privado</span>` : ''}
-                    </div>
-                    <div class="note-actions">
-                        <button class="action-btn ${isLiked ? 'liked' : ''}" data-action="like" data-id="${note.id}" aria-label="Me gusta">
-                            <i data-lucide="heart" class="action-icon"></i>
-                            <span class="count-like">${note.likesCount}</span>
-                        </button>
-                        <button class="action-btn ${isRenoted ? 'renoted' : ''}" data-action="renote" data-id="${note.id}" aria-label="Renotear">
-                            <i data-lucide="repeat-2" class="action-icon"></i>
-                            <span class="count-renote">${note.renotesCount}</span>
-                        </button>
-                        <button class="action-btn ${isSaved ? 'saved' : ''}" data-action="save" data-id="${note.id}" aria-label="Guardar">
-                            <i data-lucide="bookmark" class="action-icon"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-            frag.appendChild(div);
-        });
-
-        container.appendChild(frag);
-        this.initIcons();
-    },
-
-    renderSidebars() {
-        const nicheList = document.getElementById('trending-niches');
-        if (nicheList) {
-            nicheList.innerHTML = Object.values(AppState.niches).slice(0, 5).map(n => `
-                <div class="trend-item">
-                    <div class="trend-info niche-link" data-niche-id="${n.id}">
-                        <strong><i data-lucide="${n.icon}" style="width: 16px; height: 16px; color: var(--accent-primary);"></i> ${App.escapeHTML(n.name)}</strong>
-                        <span>${n.followersCount.toLocaleString()} contribuciones</span>
-                    </div>
-                    <button class="btn-follow ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''}" data-type="niche" data-id="${n.id}">
-                        ${AppState.currentUser.followedNiches.has(n.id) ? 'Siguiendo' : 'Seguir'}
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        const userList = document.getElementById('suggested-users');
-        if (userList) {
-            userList.innerHTML = Object.values(AppState.users)
-                .filter(u => u.id !== 'u_me' && !AppState.currentUser.followedUsers.has(u.id))
-                .slice(0, 4)
-                .map(u => {
-                    const av = u.avatar && u.avatar.startsWith('http')
-                        ? `<img src="${u.avatar}" alt="${App.escapeHTML(u.name)}" loading="lazy">`
-                        : App.escapeHTML(u.avatar || '?');
-                    return `
-                        <div class="trend-item" style="border: none; padding: 10px 0;">
-                            <div class="user-link" data-user-id="${u.id}" style="display: flex; align-items: center; gap: 10px;">
-                                <div class="avatar avatar--sm">${av}</div>
-                                <div>
-                                    <div style="font-size: 14px; font-weight: 700; line-height: 1.2;">${App.escapeHTML(u.name)}</div>
-                                    <div style="font-size: 13px; color: var(--text-secondary);">@${App.escapeHTML(u.handle)}</div>
-                                </div>
-                            </div>
-                            <button class="btn-follow ${AppState.currentUser.followedUsers.has(u.id) ? 'following' : ''}" data-type="user" data-id="${u.id}">
-                                ${AppState.currentUser.followedUsers.has(u.id) ? 'Siguiendo' : 'Seguir'}
-                            </button>
-                        </div>
-                    `;
-                }).join('');
-        }
-        this.initIcons();
-    },
-
-    // --- ACTIONS ---
     async handlePublish() {
-        const input      = document.getElementById('note-input');
-        const visibility = document.getElementById('note-visibility');
-        const nicheEl    = document.getElementById('note-niche');
+        const input = document.getElementById('note-input');
+        const rVis = document.getElementById('note-visibility');
+        const rNiche = document.getElementById('note-niche');
 
         if (!input) return;
         const content = input.value.trim();
         if (!content || AppState.isPublishing) return;
 
-        const publishBtn = document.getElementById('btn-publish');
         AppState.isPublishing = true;
+        const publishBtn = document.getElementById('btn-publish');
         if (publishBtn) publishBtn.disabled = true;
-        this.showToast("<i data-lucide='loader'></i> Publicando...");
+        UI.showToast("<i data-lucide='loader'></i> Procesando...");
 
         try {
-            let finalNiche = nicheEl ? nicheEl.value : '';
+            let finalNiche = rNiche ? rNiche.value : '';
             let isAi = false;
-            if (!finalNiche && visibility && visibility.value !== 'PRIVATE') {
-                finalNiche = await ApiService.classify(content);
+            const vis = rVis ? rVis.value : 'PUBLIC';
+            
+            if (!finalNiche && vis !== 'PRIVATE') {
+                finalNiche = await DataService.classify(content);
                 isAi = true;
             }
 
-            const note = await ApiService.publish(content, visibility ? visibility.value : 'PUBLIC', finalNiche || null);
+            const note = await DataService.publish(content, vis, finalNiche || null);
             note.isAiClassified = isAi;
-            this.showToast("<i data-lucide='check-circle'></i> Publicado con éxito");
+            UI.showToast("<i data-lucide='check-circle'></i> Nota publicada");
 
             if (AppState.currentView === 'home') {
-                this.renderFeed();
-                if (input) input.value = '';
+                const container = document.getElementById('feed-container');
+                if (container) {
+                    const emptyState = container.querySelector('.empty-state');
+                    if (emptyState) emptyState.remove();
+                    container.prepend(this._buildNoteCard(note));
+                    this.initIcons();
+                }
+                input.value = '';
             }
         } catch (e) {
-            this.showToast("<i data-lucide='alert-triangle'></i> Error al publicar");
+            UI.showToast("<i data-lucide='alert-triangle'></i> Error");
         } finally {
             AppState.isPublishing = false;
             if (publishBtn) publishBtn.disabled = false;
@@ -646,7 +870,6 @@ const App = {
     handleLike(id, btn) {
         const note = AppState.notes[id];
         if (!note) return;
-        
         const isLiked = AppState.currentUser.likedNotes.has(id);
         if (isLiked) {
             AppState.currentUser.likedNotes.delete(id);
@@ -666,9 +889,7 @@ const App = {
         else         AppState.currentUser.savedNotes.add(id);
         
         btn.classList.toggle('saved', !isSaved);
-        this.showToast(
-            !isSaved ? "<i data-lucide='bookmark-check'></i> Guardado en Segundo Cerebro" : "<i data-lucide='bookmark-minus'></i> Removido"
-        );
+        UI.showToast(!isSaved ? "<i data-lucide='bookmark-check'></i> Guardado" : "<i data-lucide='bookmark-minus'></i> Removido");
     },
 
     handleRenote(id, btn) {
@@ -685,72 +906,79 @@ const App = {
         btn.classList.toggle('renoted', !isRenoted);
         const count = btn.querySelector('.count-renote');
         if (count) count.textContent = note.renotesCount;
-        
-        this.showToast(!isRenoted ? "<i data-lucide='repeat-2'></i> Nota compartida" : "<i data-lucide='undo-2'></i> Deshecho");
+        UI.showToast(!isRenoted ? "<i data-lucide='repeat-2'></i> Nota compartida" : "<i data-lucide='undo-2'></i> Deshecho");
     },
 
     async handleDelete(id) {
-        const confirmed = await Modal.confirm('<div style="display:flex; align-items:center; gap:8px;"><i data-lucide="alert-triangle" style="color:var(--danger-color)"></i> ¿Eliminar esta nota de manera permanente?</div>', true);
+        const confirmed = await UI.confirm('<div style="display:flex; align-items:center; gap:8px;"><i data-lucide="alert-triangle" style="color:var(--danger-color)"></i> ¿Eliminar permanentemente?</div>', true);
         if (!confirmed) return;
         delete AppState.notes[id];
         AppState.currentUser.ownNotes.delete(id);
-        this.showToast("<i data-lucide='trash'></i> Nota eliminada");
+        UI.showToast("<i data-lucide='trash'></i> Eliminada");
         
-        const card = document.querySelector(`[data-action="delete"][data-id="${id}"]`)?.closest('.note-card');
+        const card = document.querySelector(`.note-card[data-note-id="${id}"]`);
         if (card) {
             card.style.animation = 'fadeOutCard 0.25s ease forwards';
             setTimeout(() => card.remove(), 250);
         }
     },
 
-    async handleEdit(id) {
-        const note = AppState.notes[id];
-        if (!note) return;
-        const newText = await Modal.prompt('<div style="display:flex; align-items:center; gap:8px;"><i data-lucide="edit-3"></i> Editar nota atómica</div>', note.content);
-        if (!newText || newText === note.content) return;
-        
-        note.content = newText;
-        this.showToast("<i data-lucide='check'></i> Actualizada");
-        
-        const card = document.querySelector(`[data-action="edit"][data-id="${id}"]`)?.closest('.note-card');
-        if (card) {
-            const contentEl = card.querySelector('.note-content');
-            if (contentEl) contentEl.textContent = note.content;
-        }
-    },
-
-    handleFollowUser(userId, btn) {
+    async handleFollowUser(userId, btn) {
         const isFollowing = AppState.currentUser.followedUsers.has(userId);
+        const targetUser = AppState.users[userId];
+
         if (isFollowing) {
             AppState.currentUser.followedUsers.delete(userId);
             AppState.currentUser.followingCount = Math.max(0, AppState.currentUser.followingCount - 1);
+            delete AppState.currentUser.followerAccess[userId];
+            btn.textContent = 'Seguir';
+            btn.classList.remove('following');
+            UI.showToast('<i data-lucide="user-minus"></i> Dejaste de seguir');
         } else {
+            const sharableFolders = AppState.currentUser.folders.filter(f => !f.isPrivate);
+            if (sharableFolders.length === 0) {
+                UI.showToast('<i data-lucide="lock"></i> Perfil bloqueado. No tienes accesos.');
+                return;
+            }
+
+            const selectedFolderId = await UI.selectFolder(
+                `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                    <i data-lucide="shield" style="color:var(--accent-primary);width:24px;height:24px;"></i>
+                    <div>
+                        <div style="font-weight:800;font-size:16px;">Restricción de Acceso</div>
+                        <div style="font-size:14px;color:var(--text-secondary);margin-top:4px;">Siguiendo a ${targetUser ? Utils.escapeHTML(targetUser.name) : 'usuario'}. ¿Qué carpeta de lectura abres?</div>
+                    </div>
+                </div>`,
+                sharableFolders
+            );
+
+            if (!selectedFolderId) {
+                UI.showToast('<i data-lucide="x"></i> Cancelado');
+                return;
+            }
+
             AppState.currentUser.followedUsers.add(userId);
             AppState.currentUser.followingCount++;
+            AppState.currentUser.followerAccess[userId] = selectedFolderId;
+            btn.textContent = 'Siguiendo';
+            btn.classList.add('following');
+            UI.showToast(`<i data-lucide="folder-check"></i> Acceso Granted`);
         }
-        btn.textContent = isFollowing ? 'Seguir' : 'Siguiendo';
-        btn.classList.toggle('following', !isFollowing);
-        this.showToast(isFollowing ? '<i data-lucide="user-minus"></i> Dejaste de seguir al perfil' : '<i data-lucide="user-plus"></i> Siguiendo nuevo perfil');
+
         this.renderSidebars();
-        
-        // Re-render feed si estamos mirando a este usuario oa un filtro de seguidos
-        if (AppState.currentView === 'home' || (AppState.currentView === 'userProfile' && AppState.currentParam === userId)) {
-            this.renderFeed();
-        }
     },
 
     handleFollowNiche(nicheId, btn) {
         const isFollowing = AppState.currentUser.followedNiches.has(nicheId);
         if (isFollowing) AppState.currentUser.followedNiches.delete(nicheId);
-        else             AppState.currentUser.followedNiches.add(nicheId);
+        else AppState.currentUser.followedNiches.add(nicheId);
         
         document.querySelectorAll(`.btn-follow[data-type="niche"][data-id="${nicheId}"]`).forEach(b => {
             b.textContent = isFollowing ? 'Seguir' : 'Siguiendo';
             b.classList.toggle('following', !isFollowing);
         });
         
-        this.showToast(isFollowing ? '<i data-lucide="minus"></i> Dejaste el nicho' : '<i data-lucide="check"></i> Te uniste al nicho');
-        
+        UI.showToast(isFollowing ? '<i data-lucide="minus"></i> Dejaste el nicho' : '<i data-lucide="check"></i> Te uniste');
         this.renderSidebars();
         if (AppState.currentView === 'home' || (AppState.currentView === 'nicheDetail' && AppState.currentParam === nicheId)) {
              this.renderFeed();
@@ -759,138 +987,170 @@ const App = {
 
     toggleTheme() {
         const doc = document.documentElement;
-        const current = doc.getAttribute('data-theme');
-        const next = current === 'light' ? 'dark' : 'light';
+        const next = doc.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
         doc.setAttribute('data-theme', next);
         localStorage.setItem('theme', next);
-        
-        const darkIcon = document.querySelector('.theme-icon-dark');
-        const lightIcon = document.querySelector('.theme-icon-light');
-        if(darkIcon && lightIcon) {
-            darkIcon.style.display = next === 'light' ? 'block' : 'none';
-            lightIcon.style.display = next === 'light' ? 'none' : 'block';
+    },
+
+    renderFeed() {
+        const container = document.getElementById('feed-container');
+        if (!container) return;
+        container.innerHTML = '';
+
+        let notes = Object.values(AppState.notes).sort((a, b) => b.timestamp - a.timestamp);
+
+        if (AppState.currentView === 'brain') {
+            notes = notes.filter(n => n.visibility === 'PRIVATE' || AppState.currentUser.savedNotes.has(n.id));
+        } else if (AppState.currentView === 'profile' || (AppState.currentView === 'userProfile' && AppState.currentParam === 'u_me')) {
+            notes = notes.filter(n => n.authorId === AppState.currentUser.id);
+        } else if (AppState.currentView === 'userProfile') {
+            notes = notes.filter(n => n.authorId === AppState.currentParam && n.visibility !== 'PRIVATE');
+        } else if (AppState.currentView === 'nicheDetail') {
+            notes = notes.filter(n => n.nicheId === AppState.currentParam && n.visibility !== 'PRIVATE');
+        } else if (AppState.currentView === 'home') {
+            const f = AppState.currentFilter;
+            if (f === 'for_you') {
+                notes = notes.filter(n => n.visibility === 'PUBLIC');
+            } else if (f === 'following') {
+                notes = notes.filter(n => 
+                    n.visibility !== 'PRIVATE' &&
+                    (AppState.currentUser.followedUsers.has(n.authorId) ||
+                     AppState.currentUser.followedNiches.has(n.nicheId) ||
+                     n.authorId === AppState.currentUser.id)
+                );
+            } else {
+                notes = notes.filter(n => n.visibility !== 'PRIVATE' && n.nicheId === f);
+            }
         }
+
+        if (notes.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state" style="text-align: center; padding: 64px 24px; color: var(--text-secondary);">
+                    <i data-lucide="layers" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
+                    <div style="font-weight: 700; font-size: 18px; color: var(--text-primary); margin-bottom: 8px;">Nada por aquí</div>
+                    <div style="font-size: 15px;">Aún no hay notas en esta sección.</div>
+                </div>
+            `;
+            this.initIcons();
+            return;
+        }
+
+        const frag = document.createDocumentFragment();
+        notes.forEach(note => frag.appendChild(this._buildNoteCard(note)));
+        container.appendChild(frag);
+        this.initIcons();
     },
 
-    showToast(htmlMsg) {
-        const toast = document.getElementById('toast');
-        if (!toast) return;
-        toast.innerHTML = htmlMsg;
-        this.initIcons(); 
-        toast.classList.add('show');
-        clearTimeout(this._toastTimer);
-        this._toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
-    },
+    _buildNoteCard(note) {
+        const author = AppState.users[note.authorId] || AppState.currentUser;
+        const niche  = note.nicheId ? AppState.niches[note.nicheId] : null;
+        const isOwn  = note.authorId === AppState.currentUser.id;
+        const isLiked   = AppState.currentUser.likedNotes.has(note.id);
+        const isSaved   = AppState.currentUser.savedNotes.has(note.id);
+        const isRenoted = AppState.currentUser.renotedNotes.has(note.id);
 
-    timeAgo(ts) {
-        const diff = Math.floor((Date.now() - ts) / 1000);
-        if (diff < 60)    return '1m';
-        if (diff < 3600)  return `${Math.floor(diff / 60)}m`;
-        if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
-        return `${Math.floor(diff / 86400)}d`;
-    },
+        const avatar = author.avatar && author.avatar.startsWith('http')
+            ? `<img src="${author.avatar}" loading="lazy">` : Utils.escapeHTML(author.avatar || '?');
 
-    escapeHTML(str) {
-        if (typeof str !== 'string') return '';
         const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
+        div.className = 'note-card';
+        div.dataset.noteId = note.id;
+        div.innerHTML = `
+            <div class="note-header">
+                <div class="note-author-wrap user-link" data-user-id="${author.id}">
+                    <div class="avatar avatar--md">${avatar}</div>
+                    <div class="note-meta">
+                        <span class="note-author">${Utils.escapeHTML(author.name)}
+                            <span class="note-handle">@${Utils.escapeHTML(author.handle)}</span>
+                        </span>
+                        <span class="note-time">${Utils.timeAgo(note.timestamp)}</span>
+                    </div>
+                </div>
+                ${isOwn ? `<div class="note-options"><button class="opt-btn" data-action="delete" data-id="${note.id}" title="Eliminar nota"><i data-lucide="trash-2" style="width: 16px; height: 16px;"></i></button></div>` : ''}
+            </div>
+            <div class="note-body">
+                <div class="note-content">${Utils.escapeHTML(note.content)}</div>
+                <div class="badges-container">
+                    ${note.isAiClassified ? `<span class="badge badge-ai"><i data-lucide="sparkles"></i> AI Suggested</span>` : ''}
+                    ${niche ? `<span class="badge badge-niche niche-link" data-niche-id="${niche.id}"><i data-lucide="${niche.icon}"></i> ${Utils.escapeHTML(niche.name)}</span>` : ''}
+                    ${note.visibility === 'PRIVATE' ? `<span class="badge badge-private"><i data-lucide="lock"></i> Privado</span>` : ''}
+                </div>
+                <div class="note-actions">
+                    <button class="action-btn ${isLiked ? 'liked' : ''}" data-action="like" data-id="${note.id}">
+                        <i data-lucide="heart" class="action-icon"></i><span class="count-like">${note.likesCount}</span>
+                    </button>
+                    <button class="action-btn ${isRenoted ? 'renoted' : ''}" data-action="renote" data-id="${note.id}">
+                        <i data-lucide="repeat-2" class="action-icon"></i><span class="count-renote">${note.renotesCount}</span>
+                    </button>
+                    <button class="action-btn ${isSaved ? 'saved' : ''}" data-action="save" data-id="${note.id}">
+                        <i data-lucide="bookmark" class="action-icon"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        return div;
+    },
+
+    renderSidebars() {
+        const nList = document.getElementById('trending-niches');
+        if (nList) nList.innerHTML = Object.values(AppState.niches).slice(0, 5).map(n => `
+            <div class="trend-item">
+                <div class="trend-info niche-link" data-niche-id="${n.id}">
+                    <strong><i data-lucide="${n.icon}" style="width: 16px; color: var(--accent-primary);"></i> ${Utils.escapeHTML(n.name)}</strong>
+                    <span>${n.followersCount.toLocaleString()} contribuciones</span>
+                </div>
+                <button class="btn-follow ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''}" data-type="niche" data-id="${n.id}">
+                    ${AppState.currentUser.followedNiches.has(n.id) ? 'Siguiendo' : 'Seguir'}
+                </button>
+            </div>
+        `).join('');
+
+        const uList = document.getElementById('suggested-users');
+        if (uList) uList.innerHTML = Object.values(AppState.users)
+            .filter(u => u.id !== 'u_me' && !AppState.currentUser.followedUsers.has(u.id))
+            .slice(0, 4)
+            .map(u => `
+                <div class="trend-item">
+                    <div class="user-link" data-user-id="${u.id}" style="display:flex;align-items:center;gap:10px;">
+                        <div class="avatar avatar--sm">${u.avatar.startsWith('http')?`<img src="${u.avatar}">`:Utils.escapeHTML(u.avatar)}</div>
+                        <div>
+                            <div style="font-size:14px;font-weight:700;">${Utils.escapeHTML(u.name)}</div>
+                            <div style="font-size:13px;color:var(--text-secondary);">@${Utils.escapeHTML(u.handle)}</div>
+                        </div>
+                    </div>
+                    <button class="btn-follow" data-type="user" data-id="${u.id}">Seguir</button>
+                </div>
+            `).join('');
     }
 };
 
 /* ==========================================================================
-   7. MOCK ENGINE 
+   9. MOCK DATA BOOTSTRAP
    ========================================================================== */
 const MockEngine = {
     generate() {
-        const nicheData = [
-            { id: 'tech',         name: 'Ingeniería',   icon: 'cpu' },
-            { id: 'startups',     name: 'Startups',     icon: 'rocket' },
-            { id: 'ai',           name: 'Agentes IA',   icon: 'bot' },
-            { id: 'design',       name: 'UI/UX',        icon: 'palette' },
-            { id: 'philosophy',   name: 'Mindset',      icon: 'book-open' },
-            { id: 'fitness',      name: 'Rendimiento',  icon: 'activity' },
-            { id: 'productivity', name: 'Sistemas',     icon: 'timer' },
-            { id: 'crypto',       name: 'Web3',         icon: 'hexagon' }
+        const niches = [
+            { id: 'tech', name: 'Software Dev', icon: 'cpu' }, { id: 'startups', name: 'Startups', icon: 'rocket' },
+            { id: 'ai', name: 'Agentes IA', icon: 'bot' }, { id: 'productivity', name: 'Sistemas', icon: 'timer' },
+            { id: 'philosophy', name: 'Mindset', icon: 'book-open' }
         ];
-        
-        nicheData.forEach(n => {
-            AppState.niches[n.id] = { ...n, followersCount: Math.floor(Math.random() * 8000) + 1200 };
-        });
+        niches.forEach(n => { AppState.niches[n.id] = { ...n, followersCount: 4000 + Math.floor(Math.random() * 5000) }; });
 
-        const users = [
-            { id: "u_1",  handle: "alex_chen_dev",   name: "Alex Chen",     avatar: "https://i.pravatar.cc/150?img=1",  bio: "Software Architect building scalable distributed systems.",    niches: ["tech", "productivity"],    followersCount: 842,  followingCount: 210 },
-            { id: "u_2",  handle: "elena_design",    name: "Elena Smith",   avatar: "https://i.pravatar.cc/150?img=2",  bio: "Visual storyteller and UI enthusiast.",                        niches: ["design", "productivity"],  followersCount: 1205, followingCount: 430 },
-            { id: "u_3",  handle: "stoic_marcus",    name: "Marcus Aurelius",avatar: "https://i.pravatar.cc/150?img=3", bio: "Applying ancient wisdom to modern chaos.",                     niches: ["philosophy","productivity"],followersCount: 560,  followingCount: 90  },
-            { id: "u_4",  handle: "sam_river_ai",    name: "Sam River",     avatar: "https://i.pravatar.cc/150?img=4",  bio: "Exploring the frontiers of Large Language Models.",            niches: ["ai", "tech"],              followersCount: 3400, followingCount: 510 },
-            { id: "u_5",  handle: "jordan_lift",     name: "Jordan Lift",   avatar: "https://i.pravatar.cc/150?img=5",  bio: "Daily gains and disciplined routines.",                        niches: ["fitness", "productivity"], followersCount: 2100, followingCount: 340 },
-            { id: "u_6",  handle: "max_codes",       name: "Max Code",      avatar: "https://i.pravatar.cc/150?img=6",  bio: "JavaScript fanatic and indie hacker.",                         niches: ["tech", "startups"],        followersCount: 450,  followingCount: 120 },
-            { id: "u_7",  handle: "startup_queen",   name: "Startup Queen", avatar: "https://i.pravatar.cc/150?img=7",  bio: "Serial entrepreneur building in public.",                      niches: ["startups", "design"],      followersCount: 890,  followingCount: 300 },
-            { id: "u_8",  handle: "phil_mind",       name: "Phil Mind",     avatar: "https://i.pravatar.cc/150?img=8",  bio: "Seeking truth through logic and reason.",                      niches: ["philosophy", "tech"],      followersCount: 320,  followingCount: 150 },
-            { id: "u_9",  handle: "fit_tech_guy",    name: "Fit Tech Guy",  avatar: "https://i.pravatar.cc/150?img=9",  bio: "Performance tracking and wearable tech enthusiast.",           niches: ["fitness", "tech"],         followersCount: 760,  followingCount: 280 },
-            { id: "u_10", handle: "prod_hacker",     name: "Prod Hacker",   avatar: "https://i.pravatar.cc/150?img=10", bio: "Systems to maximize human output.",                            niches: ["productivity", "ai"],      followersCount: 1500, followingCount: 400 },
-            { id: "u_11", handle: "design_lead_pro", name: "Design Lead",   avatar: "https://i.pravatar.cc/150?img=11", bio: "Creative direction for global brands.",                        niches: ["design", "startups"],      followersCount: 920,  followingCount: 210 },
-            { id: "u_12", handle: "logic_coder",     name: "Logic Coder",   avatar: "https://i.pravatar.cc/150?img=12", bio: "Where technical implementation meets logic.",                   niches: ["tech", "philosophy"],      followersCount: 410,  followingCount: 180 },
-            { id: "u_13", handle: "ai_creative",     name: "AI Creative",   avatar: "https://i.pravatar.cc/150?img=13", bio: "Generative art and AI-driven design.",                         niches: ["ai", "design"],            followersCount: 1100, followingCount: 350 },
-            { id: "u_14", handle: "fit_founder",     name: "Fit Founder",   avatar: "https://i.pravatar.cc/150?img=14", bio: "Building empires and building muscle.",                        niches: ["startups", "fitness"],     followersCount: 650,  followingCount: 190 },
-            { id: "u_15", handle: "zen_mode_on",     name: "Zen Mode",      avatar: "https://i.pravatar.cc/150?img=15", bio: "Minimalism and deep work.",                                    niches: ["productivity","philosophy"],followersCount: 280,  followingCount: 110 }
+        const uData = [
+            { id: "u_1", handle: "alex_chen", name: "Alex Chen", bio: "Building distributed systems.", avatar: "https://i.pravatar.cc/150?u=1", followersCount: 842, followingCount: 20 },
+            { id: "u_2", handle: "design_queen", name: "Elena S", bio: "Visual storytelling.", avatar: "https://i.pravatar.cc/150?u=2", followersCount: 1205, followingCount: 430 }
         ];
-        users.forEach(u => { AppState.users[u.id] = u; });
+        uData.forEach(u => { AppState.users[u.id] = u; });
 
-        const texts = [
-            "Clean code is a love letter to your future self.",
-            "Build in public, learn in public. The rest follows.",
-            "AI is a tool, not a replacement. Use it to amplify, not to abdicate.",
-            "Design is thinking made visual. Ugly products are unfinished thoughts.",
-            "Consistency beats intensity every single time.",
-            "The best architecture is the one your team actually understands.",
-            "Ship small, learn fast, iterate constantly. The waterfall is dead.",
-            "A startup that doesn't talk to its users is guessing in the dark.",
-            "Every great UI begins with empathy, not pixels.",
-            "Technical debt is a loan with compound interest. Pay it early."
-        ];
-
-        for (let i = 1; i <= 60; i++) {
-            const authorId = `u_${Math.floor(Math.random() * 15) + 1}`;
-            const nIds = Object.keys(AppState.niches);
-            const nId  = Math.random() > 0.3 ? nIds[Math.floor(Math.random() * nIds.length)] : null;
-            const id   = `n_${i}`;
+        for (let i = 1; i <= 20; i++) {
+            const id = Utils.generateId('n');
             AppState.notes[id] = {
-                id, authorId,
-                content: texts[Math.floor(Math.random() * texts.length)],
-                visibility: Math.random() > 0.85 ? 'PRIVATE' : (Math.random() > 0.85 ? 'NICHE' : 'PUBLIC'),
-                nicheId: nId,
-                likesCount:   Math.floor(Math.random() * 80),
-                renotesCount: Math.floor(Math.random() * 15),
-                timestamp: Date.now() - Math.floor(Math.random() * 86400000 * 5),
-                isAiClassified: Math.random() > 0.6
+                id, authorId: i%3===0 ? 'u_me':'u_1', content: "Draft atomic note " + i,
+                visibility: i%5===0 ? 'PRIVATE' : 'PUBLIC', nicheId: 'tech',
+                likesCount: 12, renotesCount: 2, timestamp: Date.now() - (i*10000), isAiClassified: false
             };
+            if(i%3===0) AppState.currentUser.ownNotes.add(id);
         }
-
-        AppState.currentUser.followedNiches.add('tech');
-        AppState.currentUser.followedNiches.add('ai');
-        AppState.currentUser.followedNiches.add('startups');
-        AppState.currentUser.followedUsers.add('u_1');
-        AppState.currentUser.followedUsers.add('u_4');
-
-        const welcomeId = 'n_welcome';
-        AppState.notes[welcomeId] = {
-            id: welcomeId, authorId: 'u_me',
-            content: 'Notebing v3 está vivo. \nImplementación SPA perfecta. Pulsa los avatares para abrir el Perfil 👨‍🚀 o toca el nicho en las "badges" inferiores.',
-            visibility: 'PUBLIC', nicheId: 'productivity', likesCount: 42, renotesCount: 8,
-            timestamp: Date.now() - 60000, isAiClassified: false
-        };
-        AppState.currentUser.ownNotes.add(welcomeId);
-
-        const style = document.createElement('style');
-        style.textContent = `
-            .niches-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-            .niche-card { display: flex; align-items: center; justify-content: space-between; transition: background-color 0.15s ease; border: 1px solid transparent;}
-            .niche-card:hover { background-color: var(--bg-surface); border-color: var(--border-color); box-shadow: var(--shadow-sm); transform: translateY(-2px); transition: all var(--transition-fast); }
-            @keyframes fadeOutCard { from { opacity: 1; transform: translateX(0); max-height: 200px; } to { opacity: 0; transform: translateX(20px); max-height: 0; padding: 0; margin: 0; border: none; } }
-            @media (min-width: 600px) { .niches-grid { grid-template-columns: 1fr 1fr; } }
-        `;
-        document.head.appendChild(style);
     }
 };
 
