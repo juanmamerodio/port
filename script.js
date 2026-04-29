@@ -1,9 +1,10 @@
 /**
- * NOTEBING - CORE ENGINE v3
+ * NOTEBING - CORE ENGINE v4
  * 
  * Cambios recientes:
- * - Lucide Icons integrados (0% emojis, 100% SVG minimalista).
- * - CSS Grid Layout (Notion / X style compliance).
+ * - SPA Avanzada: Router acepta params. 
+ * - Vistas dinámicas: userProfile y nicheDetail.
+ * - Píldoras de filtro en el feed (Home).
  */
 
 /* ==========================================================================
@@ -11,6 +12,8 @@
    ========================================================================== */
 const AppState = {
     currentView: 'home',
+    currentParam: null,
+    currentFilter: 'for_you', // for_you, following, o ID del nicho
     isPublishing: false,
     currentUser: {
         id: 'u_me', handle: 'tu_usuario', name: 'Tú', avatar: 'T',
@@ -107,7 +110,7 @@ const Modal = {
 };
 
 /* ==========================================================================
-   4. VIEW MODULES
+   4. VIEW MODULES (SPA Engine)
    ========================================================================== */
 const Views = {
     home: {
@@ -141,10 +144,42 @@ const Views = {
                     </div>
                 </div>
             </div>
+            
+            <!-- Feed Filters (JS Injected) -->
+            <div class="feed-filters-wrapper">
+               <div class="feed-filters" id="home-filters"></div>
+            </div>
+
             <div id="feed-container" class="feed-container"></div>
         `,
         onMount: () => {
             App.bindComposer();
+            
+            // Build Filter Pills
+            const filterContainer = document.getElementById('home-filters');
+            if (filterContainer) {
+                let pillsHTML = `
+                   <button class="filter-pill ${AppState.currentFilter === 'for_you' ? 'active' : ''}" data-filter="for_you">Para ti</button>
+                   <button class="filter-pill ${AppState.currentFilter === 'following' ? 'active' : ''}" data-filter="following">Siguiendo</button>
+                `;
+                Object.values(AppState.niches).forEach(n => {
+                   pillsHTML += `<button class="filter-pill ${AppState.currentFilter === n.id ? 'active' : ''}" data-filter="${n.id}">${App.escapeHTML(n.name)}</button>`;
+                });
+                filterContainer.innerHTML = pillsHTML;
+
+                filterContainer.addEventListener('click', e => {
+                   const btn = e.target.closest('.filter-pill');
+                   if(!btn) return;
+                   
+                   AppState.currentFilter = btn.dataset.filter;
+                   filterContainer.querySelectorAll('.filter-pill').forEach(el => el.classList.remove('active'));
+                   btn.classList.add('active');
+                   
+                   window.scrollTo({ top: 0, behavior: 'smooth' }); // Return to top when filtering
+                   App.renderFeed();
+                });
+            }
+
             App.renderFeed();
         }
     },
@@ -156,7 +191,7 @@ const Views = {
                 <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 24px;">Explorar Nichos</h2>
                 <div class="niches-grid">
                     ${Object.values(AppState.niches).map(n => `
-                        <div class="widget niche-card" data-niche-id="${n.id}" style="margin-bottom: 0;">
+                        <div class="widget niche-card niche-link" data-niche-id="${n.id}" style="margin-bottom: 0; cursor: pointer;">
                             <div style="display: flex; align-items: center; gap: 16px; flex: 1;">
                                 <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--accent-alpha); color: var(--accent-primary); display: flex; align-items: center; justify-content: center;">
                                     <i data-lucide="${n.icon}" style="width: 24px; height: 24px;"></i>
@@ -166,7 +201,7 @@ const Views = {
                                     <div style="font-size: 13px; color: var(--text-secondary);">${n.followersCount.toLocaleString()} notas</div>
                                 </div>
                             </div>
-                            <button class="btn-follow ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''}" data-type="niche" data-id="${n.id}">
+                            <button class="btn-follow ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''} z-button" data-type="niche" data-id="${n.id}">
                                 ${AppState.currentUser.followedNiches.has(n.id) ? 'Siguiendo' : 'Seguir'}
                             </button>
                         </div>
@@ -175,6 +210,35 @@ const Views = {
             </div>
         `,
         onMount: () => {}
+    },
+
+    nicheDetail: {
+        title: (id) => {
+            const niche = AppState.niches[id];
+            return niche ? niche.name : "Nicho";
+        },
+        render: (id) => {
+            const n = AppState.niches[id];
+            if (!n) return `<div class="empty-state">Nicho no encontrado</div>`;
+            return `
+                <div style="padding: 32px 24px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <div style="width: 56px; height: 56px; border-radius: 16px; background: var(--accent-alpha); color: var(--accent-primary); display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="${n.icon}" style="width: 32px; height: 32px;"></i>
+                        </div>
+                        <div>
+                            <h2 style="font-size: 24px; font-weight: 800;">${App.escapeHTML(n.name)}</h2>
+                            <div style="font-size: 15px; color: var(--text-secondary);">${n.followersCount.toLocaleString()} notas publicadas</div>
+                        </div>
+                    </div>
+                    <button class="btn-follow ${AppState.currentUser.followedNiches.has(n.id) ? 'following' : ''}" data-type="niche" data-id="${n.id}">
+                        ${AppState.currentUser.followedNiches.has(n.id) ? 'Siguiendo' : 'Seguir'}
+                    </button>
+                </div>
+                <div id="feed-container" class="feed-container"></div>
+            `;
+        },
+        onMount: () => App.renderFeed()
     },
 
     brain: {
@@ -194,12 +258,37 @@ const Views = {
 
     profile: {
         title: "Perfil",
-        render: () => {
-            const u = AppState.currentUser;
+        render: () => Views.userProfile.render('u_me'),
+        onMount: () => App.renderFeed()
+    },
+
+    userProfile: {
+        title: (id) => {
+            const u = id === 'u_me' ? AppState.currentUser : AppState.users[id];
+            return u ? u.name : "Perfil";
+        },
+        render: (id) => {
+            const u = id === 'u_me' ? AppState.currentUser : AppState.users[id];
+            if (!u) return `<div class="empty-state">Usuario no encontrado</div>`;
+            
+            const isMe = id === 'u_me';
+            const isFollowing = AppState.currentUser.followedUsers.has(id);
+            const avatarContent = u.avatar && u.avatar.startsWith('http')
+                ? `<img src="${u.avatar}" alt="${App.escapeHTML(u.name)}" loading="lazy">`
+                : App.escapeHTML(u.avatar || '?');
+
             return `
                 <div style="padding: 32px 24px;">
-                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 32px;">
-                        <div class="avatar avatar--lg" style="margin-bottom: 16px;">${App.escapeHTML(u.avatar)}</div>
+                    <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 32px; position: relative;">
+                        ${!isMe ? `
+                        <div style="position: absolute; right: 0; top: 0;">
+                             <button class="btn-follow ${isFollowing ? 'following' : ''}" data-type="user" data-id="${u.id}">
+                                 ${isFollowing ? 'Siguiendo' : 'Seguir'}
+                             </button>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="avatar avatar--lg" style="margin-bottom: 16px;">${avatarContent}</div>
                         <h2 style="font-size: 24px; font-weight: 800;">${App.escapeHTML(u.name)}</h2>
                         <p style="color: var(--text-secondary);">@${App.escapeHTML(u.handle)}</p>
                         <p style="margin-top: 16px; font-size: 15px; max-width: 320px;">${App.escapeHTML(u.bio)}</p>
@@ -214,7 +303,7 @@ const Views = {
                             </div>
                         </div>
                     </div>
-                    <h3 style="font-weight: 800; font-size: 18px; margin-bottom: 16px; padding: 0 16px;">Mis Notas</h3>
+                    <h3 style="font-weight: 800; font-size: 18px; margin-bottom: 16px; padding: 0 16px;">${isMe ? 'Mis Notas' : 'Notas de ' + App.escapeHTML(u.name.split(' ')[0])}</h3>
                     <div id="feed-container" class="feed-container"></div>
                 </div>
             `;
@@ -227,21 +316,31 @@ const Views = {
    5. ROUTER
    ========================================================================== */
 const Router = {
-    navigate(viewName) {
+    navigate(viewName, param = null) {
         if (!Views[viewName]) return;
         AppState.currentView = viewName;
+        AppState.currentParam = param;
+
+        // Reset Filter just in case
+        if (viewName !== 'home') AppState.currentFilter = 'for_you';
 
         document.querySelectorAll('.nav-item').forEach(el => {
-            el.classList.toggle('active', el.dataset.view === viewName);
+            if(el.dataset.view) {
+                // If it's a dynamic view like userProfile, we just un-active everything normally unless matching
+                el.classList.toggle('active', el.dataset.view === viewName || (viewName === 'userProfile' && el.dataset.view === 'profile' && param === 'u_me'));
+            }
         });
 
-        document.getElementById('view-title').textContent = Views[viewName].title;
+        // Resolve dynamic Title
+        const vTitle = typeof Views[viewName].title === 'function' ? Views[viewName].title(param) : Views[viewName].title;
+        document.getElementById('view-title').textContent = vTitle;
 
         const container = document.getElementById('view-container');
-        container.innerHTML = Views[viewName].render();
+        window.scrollTo(0, 0); // Reset scroll on view change
+        container.innerHTML = Views[viewName].render(param);
 
         if (Views[viewName].onMount) {
-            Views[viewName].onMount();
+            Views[viewName].onMount(param);
         }
 
         App.renderSidebars();
@@ -259,7 +358,6 @@ const App = {
             document.documentElement.setAttribute('data-theme', savedTheme);
             const toggleBtn = document.getElementById('theme-toggle');
             if(savedTheme === 'dark' && toggleBtn) {
-                // Se invierten manual por si no actua el CSS
                 toggleBtn.querySelector('.theme-icon-dark').style.display = 'none';
                 toggleBtn.querySelector('.theme-icon-light').style.display = 'block';
             }
@@ -283,7 +381,6 @@ const App = {
     bindEvents() {
         document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                // Prevenir interferencia en el fab click
                 if(!e.target.closest('.btn-compose-mobile')) {
                     e.preventDefault();
                     Router.navigate(btn.dataset.view);
@@ -294,22 +391,40 @@ const App = {
         document.getElementById('theme-toggle').addEventListener('click', () => this.toggleTheme());
 
         document.addEventListener('click', (e) => {
+            // Check for normal action buttons
             const btn = e.target.closest('.action-btn, .opt-btn, .btn-follow, #btn-publish');
-            if (!btn) return;
+            if (btn) {
+                const { action, id, type } = btn.dataset;
+                if(!btn.classList.contains('z-button')) {
+                    if (action === 'like')   this.handleLike(id, btn);
+                    if (action === 'save')   this.handleSave(id, btn);
+                    if (action === 'delete') this.handleDelete(id);
+                    if (action === 'edit')   this.handleEdit(id);
+                    if (action === 'renote') this.handleRenote(id, btn);
+                }
 
-            const { action, id, type } = btn.dataset;
-            if (action === 'like')   this.handleLike(id, btn);
-            if (action === 'save')   this.handleSave(id, btn);
-            if (action === 'delete') this.handleDelete(id);
-            if (action === 'edit')   this.handleEdit(id);
-            if (action === 'renote') this.handleRenote(id, btn);
+                if (btn.classList.contains('btn-follow')) {
+                    e.stopPropagation(); // Evitar click en cards debajo
+                    if (type === 'user')  this.handleFollowUser(id, btn);
+                    if (type === 'niche') this.handleFollowNiche(id, btn);
+                }
 
-            if (btn.classList.contains('btn-follow')) {
-                if (type === 'user')  this.handleFollowUser(id, btn);
-                if (type === 'niche') this.handleFollowNiche(id, btn);
+                if (btn.id === 'btn-publish') this.handlePublish();
+                return;
             }
 
-            if (btn.id === 'btn-publish') this.handlePublish();
+            // Check for SPA custom Links (User Profile / Niche detail)
+            const userLink = e.target.closest('.user-link');
+            if (userLink && userLink.dataset.userId) {
+                e.stopPropagation();
+                Router.navigate('userProfile', userLink.dataset.userId);
+            }
+
+            const nicheLink = e.target.closest('.niche-link');
+            if (nicheLink && nicheLink.dataset.nicheId) {
+                e.stopPropagation();
+                Router.navigate('nicheDetail', nicheLink.dataset.nicheId);
+            }
         });
     },
 
@@ -324,7 +439,6 @@ const App = {
             const input = document.getElementById('note-input');
             if (input) {
                 input.focus();
-                // scroll to top en mobile
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }, 150);
@@ -341,21 +455,39 @@ const App = {
             notes = notes.filter(n => n.visibility === 'PRIVATE' || AppState.currentUser.savedNotes.has(n.id));
         } else if (AppState.currentView === 'profile') {
             notes = notes.filter(n => n.authorId === AppState.currentUser.id);
+        } else if (AppState.currentView === 'userProfile') {
+            const targetUser = AppState.currentParam;
+            notes = notes.filter(n => n.authorId === targetUser && n.visibility !== 'PRIVATE');
+        } else if (AppState.currentView === 'nicheDetail') {
+            const targetNiche = AppState.currentParam;
+            notes = notes.filter(n => n.nicheId === targetNiche && n.visibility !== 'PRIVATE');
         } else if (AppState.currentView === 'home') {
-            notes = notes.filter(n =>
-                n.visibility !== 'PRIVATE' &&
-                (AppState.currentUser.followedUsers.has(n.authorId) ||
-                 AppState.currentUser.followedNiches.has(n.nicheId) ||
-                 n.authorId === AppState.currentUser.id)
-            );
+            // Apply advanced filters for HOME
+            const f = AppState.currentFilter;
+            
+            if (f === 'for_you') {
+                // Para ti (Mix de recientes globales)
+                notes = notes.filter(n => n.visibility === 'PUBLIC');
+            } else if (f === 'following') {
+                // Solo seguidos
+                notes = notes.filter(n => 
+                    n.visibility !== 'PRIVATE' &&
+                    (AppState.currentUser.followedUsers.has(n.authorId) ||
+                     AppState.currentUser.followedNiches.has(n.nicheId) ||
+                     n.authorId === AppState.currentUser.id)
+                );
+            } else {
+                // Un Nicho Específico (Filtro por píldora de nicho)
+                notes = notes.filter(n => n.visibility !== 'PRIVATE' && n.nicheId === f);
+            }
         }
 
         if (notes.length === 0) {
             container.innerHTML = `
-                <div class="empty-state">
-                    <i data-lucide="layers" class="empty-icon text-secondary"></i>
-                    <div class="empty-title">Nada por aquí</div>
-                    <div class="empty-desc">Sigue a usuarios o explora nichos para construir tu feed personalizado.</div>
+                <div class="empty-state" style="text-align: center; padding: 64px 24px; color: var(--text-secondary);">
+                    <i data-lucide="layers" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
+                    <div style="font-weight: 700; font-size: 18px; color: var(--text-primary); margin-bottom: 8px;">Nada por aquí</div>
+                    <div style="font-size: 15px;">Aún no hay notas en esta sección para mostrarte.</div>
                 </div>
             `;
             this.initIcons();
@@ -379,7 +511,7 @@ const App = {
             div.className = 'note-card';
             div.innerHTML = `
                 <div class="note-header">
-                    <div class="note-author-wrap">
+                    <div class="note-author-wrap user-link" data-user-id="${author.id}">
                         <div class="avatar avatar--md">${avatarContent}</div>
                         <div class="note-meta">
                             <span class="note-author">${App.escapeHTML(author.name)}
@@ -403,7 +535,7 @@ const App = {
                     <div class="note-content">${App.escapeHTML(note.content)}</div>
                     <div class="badges-container">
                         ${note.isAiClassified ? `<span class="badge badge-ai"><i data-lucide="sparkles"></i> AI Suggested</span>` : ''}
-                        ${niche ? `<span class="badge badge-niche"><i data-lucide="${niche.icon}"></i> ${App.escapeHTML(niche.name)}</span>` : ''}
+                        ${niche ? `<span class="badge badge-niche niche-link" data-niche-id="${niche.id}"><i data-lucide="${niche.icon}"></i> ${App.escapeHTML(niche.name)}</span>` : ''}
                         ${note.visibility === 'PRIVATE' ? `<span class="badge badge-private"><i data-lucide="lock"></i> Privado</span>` : ''}
                     </div>
                     <div class="note-actions">
@@ -433,7 +565,7 @@ const App = {
         if (nicheList) {
             nicheList.innerHTML = Object.values(AppState.niches).slice(0, 5).map(n => `
                 <div class="trend-item">
-                    <div class="trend-info">
+                    <div class="trend-info niche-link" data-niche-id="${n.id}">
                         <strong><i data-lucide="${n.icon}" style="width: 16px; height: 16px; color: var(--accent-primary);"></i> ${App.escapeHTML(n.name)}</strong>
                         <span>${n.followersCount.toLocaleString()} contribuciones</span>
                     </div>
@@ -455,7 +587,7 @@ const App = {
                         : App.escapeHTML(u.avatar || '?');
                     return `
                         <div class="trend-item" style="border: none; padding: 10px 0;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="user-link" data-user-id="${u.id}" style="display: flex; align-items: center; gap: 10px;">
                                 <div class="avatar avatar--sm">${av}</div>
                                 <div>
                                     <div style="font-size: 14px; font-weight: 700; line-height: 1.2;">${App.escapeHTML(u.name)}</div>
@@ -524,7 +656,6 @@ const App = {
             note.likesCount++;
         }
         btn.classList.toggle('liked', !isLiked);
-        // El icono de Lucide cambia de color usando CSS .liked .lucide { fill: var(--danger-color); stroke: ...}
         const count = btn.querySelector('.count-like');
         if (count) count.textContent = note.likesCount;
     },
@@ -601,7 +732,11 @@ const App = {
         btn.classList.toggle('following', !isFollowing);
         this.showToast(isFollowing ? '<i data-lucide="user-minus"></i> Dejaste de seguir al perfil' : '<i data-lucide="user-plus"></i> Siguiendo nuevo perfil');
         this.renderSidebars();
-        if (AppState.currentView === 'home') this.renderFeed();
+        
+        // Re-render feed si estamos mirando a este usuario oa un filtro de seguidos
+        if (AppState.currentView === 'home' || (AppState.currentView === 'userProfile' && AppState.currentParam === userId)) {
+            this.renderFeed();
+        }
     },
 
     handleFollowNiche(nicheId, btn) {
@@ -617,7 +752,9 @@ const App = {
         this.showToast(isFollowing ? '<i data-lucide="minus"></i> Dejaste el nicho' : '<i data-lucide="check"></i> Te uniste al nicho');
         
         this.renderSidebars();
-        if (AppState.currentView === 'home') this.renderFeed();
+        if (AppState.currentView === 'home' || (AppState.currentView === 'nicheDetail' && AppState.currentParam === nicheId)) {
+             this.renderFeed();
+        }
     },
 
     toggleTheme() {
@@ -639,7 +776,7 @@ const App = {
         const toast = document.getElementById('toast');
         if (!toast) return;
         toast.innerHTML = htmlMsg;
-        this.initIcons(); // por si se pasa un svg en el html
+        this.initIcons(); 
         toast.classList.add('show');
         clearTimeout(this._toastTimer);
         this._toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
@@ -738,8 +875,8 @@ const MockEngine = {
 
         const welcomeId = 'n_welcome';
         AppState.notes[welcomeId] = {
-            id: welcomeId, autorId: 'u_me',
-            content: 'Notebing v2 is live! \nDesarrollo fluido y UI re-ingenierada con CSS Grid y Lucide Icons.',
+            id: welcomeId, authorId: 'u_me',
+            content: 'Notebing v3 está vivo. \nImplementación SPA perfecta. Pulsa los avatares para abrir el Perfil 👨‍🚀 o toca el nicho en las "badges" inferiores.',
             visibility: 'PUBLIC', nicheId: 'productivity', likesCount: 42, renotesCount: 8,
             timestamp: Date.now() - 60000, isAiClassified: false
         };

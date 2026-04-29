@@ -736,6 +736,58 @@ a {
     color: var(--text-secondary);
 }
 
+/* --- Feed Filters (Barra Píldoras JS) --- */
+.feed-filters-wrapper {
+    position: sticky;
+    top: 71px; /* Just below top-bar */
+    z-index: 40;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.feed-filters {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 12px var(--space-lg);
+    scrollbar-width: none; /* Firefox */
+}
+
+.feed-filters::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
+
+.filter-pill {
+    white-space: nowrap;
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--bg-surface-hover);
+    border: 1px solid transparent;
+    transition: var(--transition-fast);
+}
+
+.filter-pill:hover {
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.filter-pill.active {
+    background: var(--text-primary);
+    color: var(--bg-surface);
+}
+
+/* SPA Links Interactions */
+.user-link, .niche-link {
+    cursor: pointer;
+}
+.user-link:hover, .niche-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
 /* --- Modals & Toasts --- */
 .toast {
     position: fixed;
